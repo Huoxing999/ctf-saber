@@ -1,5 +1,9 @@
 # CTF工具箱
 
+![Windows](https://img.shields.io/badge/Windows-10%2F11-blue?logo=windows)
+![Python](https://img.shields.io/badge/Python-3.8+-yellow?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
+
 基于 Flask 的离线 CTF 工具箱，通过浏览器访问即可使用，覆盖逆向、密码、隐写、Web、渗透、取证、流量、防火墙、数据库等 11 大模块，130+ API 接口。
 
 ## 功能模块
