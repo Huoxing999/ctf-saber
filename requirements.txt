@@ -1,0 +1,11 @@
+# CTF工具箱 - 依赖清单
+
+# 必需依赖
+flask>=2.0
+pillow>=9.0
+
+# 可选依赖（增强功能，未安装时自动降级）
+# pefile>=2023.2.7      # PE文件深度分析
+# scapy>=2.5            # pcap流量分析
+# rarfile>=4.0          # RAR压缩包支持
+# pandas>=1.5           # Excel文件分析

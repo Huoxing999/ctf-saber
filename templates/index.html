@@ -1,0 +1,3742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTF工具箱</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f5f7fa;--card:#fff;--primary:#3b82f6;--primary-hover:#2563eb;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--text:#1e293b;--text-secondary:#64748b;--border:#e2e8f0;--code-bg:#f1f5f9;--shadow:0 1px 3px rgba(0,0,0,.1);--radius:8px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.header{background:var(--card);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);position:sticky;top:0;z-index:100}
+.header h1{font-size:20px;font-weight:700;color:var(--primary)}
+.header h1 span{color:var(--text-secondary);font-weight:400;font-size:14px;margin-left:8px}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;background:var(--card);padding:8px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px}
+.tab{padding:8px 16px;border:none;background:transparent;cursor:pointer;border-radius:6px;font-size:14px;font-weight:500;color:var(--text-secondary);transition:all .2s}
+.tab:hover{background:var(--bg);color:var(--text)}
+.tab.active{background:var(--primary);color:#fff}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.card-title{font-size:16px;font-weight:600;margin-bottom:12px;color:var(--text);display:flex;align-items:center;gap:8px}
+.input-area{margin-bottom:16px}
+.input-area label{display:block;font-size:13px;font-weight:500;color:var(--text-secondary);margin-bottom:6px}
+textarea{width:100%;min-height:120px;padding:12px;border:1px solid var(--border);border-radius:6px;font-family:monospace;font-size:14px;resize:vertical;background:var(--code-bg)}
+textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+input[type=text],input[type=number],select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--card)}
+input:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:40px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--code-bg)}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--primary);background:rgba(59,130,246,.05)}
+.upload-zone p{color:var(--text-secondary);font-size:14px}
+.upload-zone .icon{font-size:36px;margin-bottom:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border:none;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-primary:disabled{background:#94a3b8;cursor:not-allowed}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.form-row{display:flex;gap:12px;margin-bottom:12px}
+.form-row>*{flex:1}
+.form-group{margin-bottom:12px}
+.result-area{margin-top:16px}
+.result-block{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;margin-bottom:12px;overflow:hidden}
+.inline-result{margin-top:-8px;margin-bottom:16px}
+.result-header{padding:10px 14px;background:var(--card);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.result-header:hover{background:#f8fafc}
+.result-header h4{font-size:14px;font-weight:600}
+.result-body{padding:14px;font-family:monospace;font-size:13px;white-space:pre-wrap;word-break:break-all;max-height:400px;overflow-y:auto}
+.result-body.collapsed{display:none}
+.flag{color:var(--danger);font-weight:700;background:rgba(239,68,68,.1);padding:1px 4px;border-radius:3px}
+.copy-btn{padding:4px 10px;font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text-secondary)}
+.copy-btn:hover{background:var(--border)}
+.loading{display:none;text-align:center;padding:40px;color:var(--text-secondary)}
+.loading.show{display:block}
+.spinner{display:inline-block;width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.badge-success{background:#dcfce7;color:#166534}
+.badge-danger{background:#fef2f2;color:#991b1b}
+.badge-info{background:#dbeafe;color:#1e40af}
+.error-msg{color:var(--danger);background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:12px;margin-top:12px;display:none}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:768px){.form-row{flex-direction:column}.grid-2{grid-template-columns:1fr}.tabs{overflow-x:auto;flex-wrap:nowrap}.header{flex-direction:column;gap:8px}}
+.data-table{width:100%;border-collapse:collapse;font-size:13px;font-family:monospace}
+.data-table th{border:1px solid var(--border);padding:6px 10px;background:var(--code-bg);text-align:left;white-space:nowrap;font-weight:600}
+.data-table td{border:1px solid var(--border);padding:4px 8px;max-width:250px;overflow:hidden;text-overflow:ellipsis}
+.data-table tr:hover{background:rgba(59,130,246,.04)}
+.summary-card{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.summary-item{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:10px 16px;min-width:120px}
+.summary-item .label{font-size:12px;color:var(--text-secondary)}
+.summary-item .value{font-size:20px;font-weight:700;color:var(--primary)}
+.hidden{display:none}
+.file-info{margin-top:8px;padding:8px 12px;background:#dcfce7;border:1px solid #86efac;border-radius:6px;font-size:13px;color:#166534;display:none;align-items:center;gap:8px}
+.file-info.show{display:flex}
+.file-info .name{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-info .size{color:#15803d;font-size:12px}
+.file-info .clear{cursor:pointer;color:#166534;font-size:16px;padding:0 4px;border-radius:4px;background:transparent;border:none}
+.file-info .clear:hover{background:#bbf7d0}
+
+/* 服务器配置 - 场景卡片 */
+.scenario-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.scenario-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .2s}
+.scenario-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 12px rgba(59,130,246,.15)}
+.scenario-card .icon{font-size:36px;margin-bottom:8px}
+.scenario-card .name{font-weight:600;font-size:14px}
+.scenario-card .desc{font-size:12px;color:var(--text-secondary);margin-top:4px}
+
+/* 服务器配置 - 功能网格 */
+.func-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.func-item{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
+.func-item:hover{background:var(--card);border-color:var(--primary)}
+.func-item .icon{font-size:24px;margin-bottom:6px}
+.func-item .name{font-size:13px;font-weight:500}
+
+/* 服务器配置 - 输入提示 */
+.input-hint{font-size:12px;color:var(--text-secondary);margin-top:4px}
+
+/* 服务器配置 - 面板标题 */
+.panel-title{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--primary)}
+.panel-title .icon{font-size:28px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CTF工具箱</h1>
+  <button class="btn btn-primary" onclick="switchTab('auto')">智能检测</button>
+</div>
+
+<div class="container">
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="auto" onclick="switchTab('auto')">智能检测</button>
+    <button class="tab" data-tab="reverse" onclick="switchTab('reverse')">逆向与密码</button>
+    <button class="tab" data-tab="data" onclick="switchTab('data')">数据安全</button>
+    <button class="tab" data-tab="archive" onclick="switchTab('archive')">压缩包</button>
+    <button class="tab" data-tab="traffic" onclick="switchTab('traffic')">流量与日志</button>
+    <button class="tab" data-tab="web" onclick="switchTab('web')">Web安全</button>
+    <button class="tab" data-tab="pentest" onclick="switchTab('pentest')">渗透测试</button>
+    <button class="tab" data-tab="forensics" onclick="switchTab('forensics')">电子取证</button>
+    <button class="tab" data-tab="firewall" onclick="switchTab('firewall')">防火墙</button>
+    <button class="tab" data-tab="dbsec" onclick="switchTab('dbsec')">数据库安全</button>
+    <button class="tab" data-tab="server" onclick="switchTab('server')">信息运维</button>
+  </div>
+
+  <!-- 智能检测 -->
+  <div class="tab-content" id="tab-auto">
+    <div class="card">
+      <div class="card-title">智能检测 - 拖入文件自动识别类型并分析</div>
+      <div class="upload-zone" id="auto-upload" onclick="document.getElementById('auto-file').click()" ondrop="handleDrop(event,'auto-file')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="icon">&#128269;</div>
+        <p>拖拽文件到此处，自动识别类型并调用对应模块分析</p>
+        <p style="font-size:12px;color:#94a3b8;margin-top:4px">EXE/DLL/ZIP/RAR/图片/PCAP/CSV/日志/内存转储 等</p>
+      </div>
+      <div class="file-info" id="auto-file-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('auto-file')">&times;</button></div>
+      <input type="file" id="auto-file" style="display:none" onchange="onFileSelected('auto-file',this.files);autoDetect()">
+    </div>
+    <div class="loading" id="auto-loading"><div class="spinner"></div> 分析中...</div>
+    <div class="error-msg" id="auto-error"></div>
+    <div class="result-area" id="auto-result"></div>
+  </div>
+
+  <!-- 逆向工程 -->
+  <div class="tab-content hidden" id="tab-reverse">
+    <div class="card">
+      <div class="card-title">逆向工程 - PE/ELF分析、异或爆破</div>
+      <div class="upload-zone" onclick="document.getElementById('rev-file').click()" ondrop="handleDrop(event,'rev-file')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="icon">&#128196;</div>
+        <p>拖拽文件到此处，或点击选择文件</p>
+      </div>
+      <div class="file-info" id="rev-file-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('rev-file')">&times;</button></div>
+      <input type="file" id="rev-file" style="display:none" onchange="onFileSelected('rev-file',this.files)">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="callApi('/api/reverse/analyze','rev-file')">PE/ELF分析</button>
+        <button class="btn btn-primary" onclick="callApi('/api/reverse/xor','rev-file')">异或爆破</button>
+        <button class="btn btn-primary" onclick="callApi('/api/reverse/find-flag','rev-file')">搜索Flag</button>
+      </div>
+    </div>
+    <div class="loading" id="reverse-loading"><div class="spinner"></div> 分析中...</div>
+    <div class="error-msg" id="reverse-error"></div>
+    <div class="result-area" id="reverse-result"></div>
+  </div>
+
+  <!-- 密码学 -->
+  <div class="tab-content hidden" id="tab-crypto">
+    <div class="card">
+      <div class="card-title">密码学 - 编码识别、古典密码、MD5反查</div>
+      <div class="input-area">
+        <label>输入密文 / 编码文本 / Hash</label>
+        <textarea id="crypto-text" placeholder="输入待解密文本..."></textarea>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="cryptoApi('identify','crypto-text')">编码识别</button>
+        <button class="btn btn-primary" onclick="cryptoApi('caesar','crypto-text')">凯撒爆破</button>
+        <button class="btn btn-primary" onclick="cryptoApi('decode','crypto-text')">多层解码</button>
+        <button class="btn btn-primary" onclick="cryptoApi('hash-id','crypto-text')">哈希识别</button>
+        <button class="btn btn-primary" onclick="cryptoApi('fence','crypto-text')">栅栏解密</button>
+        <button class="btn btn-primary" onclick="cryptoApi('bacon','crypto-text')">培根解密</button>
+        <button class="btn btn-primary" onclick="cryptoApi('atbash','crypto-text')">Atbash解密</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">MD5反查</div>
+      <div class="form-row">
+        <div><input type="text" id="crypto-md5" placeholder="输入MD5哈希值"></div>
+        <div style="flex:0"><button class="btn btn-primary" onclick="cryptoApi('md5','crypto-md5','hash')">反查</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Vigenere解密</div>
+      <div class="form-row">
+        <div><input type="text" id="vig-text" placeholder="密文"></div>
+        <div><input type="text" id="vig-key" placeholder="密钥"></div>
+        <div style="flex:0"><button class="btn btn-primary" onclick="vigenereDecrypt()">解密</button></div>
+      </div>
+    </div>
+    <div class="loading" id="crypto-loading"><div class="spinner"></div> 分析中...</div>
+    <div class="error-msg" id="crypto-error"></div>
+    <div class="result-area" id="crypto-result"></div>
+  </div>
+
+  <!-- 数据安全 -->
+  <div class="tab-content hidden" id="tab-data">
+    <!-- 校验验证 -->
+    <div class="card">
+      <div class="card-title">校验验证 - 银行卡/身份证</div>
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">💳 Luhn / VISA 校验</h4>
+          <div class="form-row">
+            <input type="text" id="data-card" placeholder="输入银行卡号 如 6222021234567890123">
+            <button class="btn btn-primary btn-sm" onclick="dataApi('luhn','data-card','number')">Luhn</button>
+            <button class="btn btn-primary btn-sm" onclick="dataApi('visa','data-card','number')">VISA</button>
+            <button class="btn btn-primary btn-sm" onclick="dataApi('card-type','data-card','number')">卡种识别</button>
+          </div>
+        </div>
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">🪪 身份证校验</h4>
+          <div class="form-row">
+            <input type="text" id="data-id" placeholder="18位身份证号 如 110101199001011234">
+            <button class="btn btn-primary btn-sm" onclick="dataApi('id-card','data-id','id')">校验</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 数据脱敏 -->
+    <div class="card">
+      <div class="card-title">数据脱敏 - 自动识别敏感信息</div>
+      <textarea id="data-desen" placeholder="粘贴包含手机号/身份证/银行卡/邮箱的文本，自动识别并脱敏&#10;示例：张三 13812345678 110101199001011234 6222021234567890 zhangsan@email.com" style="min-height:80px"></textarea>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="dataApi('desensitize','data-desen','text')">自动脱敏</button>
+      </div>
+      <div style="margin-top:12px">
+        <h4 style="font-size:14px;margin-bottom:8px">金额脱敏</h4>
+        <div class="form-row">
+          <input type="number" id="data-amount" placeholder="输入金额 如 12345.67">
+          <button class="btn btn-primary btn-sm" onclick="dataApi('amount','data-amount','amount')">脱敏</button>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <h4 style="font-size:14px;margin-bottom:8px">竞赛一键脱敏（CSV/Excel文件）</h4>
+        <div class="upload-zone" onclick="document.getElementById('data-comp-desen').click()" ondrop="handleDrop(event,'data-comp-desen')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" style="padding:16px">
+          <p>拖拽CSV文件到此处，一键完成全部脱敏</p>
+        </div>
+        <div class="file-info" id="data-comp-desen-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('data-comp-desen')">&times;</button></div>
+        <input type="file" id="data-comp-desen" accept=".csv" style="display:none" onchange="onFileSelected('data-comp-desen',this.files)">
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="callApi('/api/data/competition-desensitize','data-comp-desen')">一键脱敏</button>
+        </div>
+      </div>
+    </div>
+    <!-- 编解码工具 -->
+    <div class="card">
+      <div class="card-title">编解码工具 - Base64/URL/Hex/哈希</div>
+      <textarea id="data-code-input" placeholder="输入待编解码的文本" style="min-height:60px"></textarea>
+      <div class="btn-group" style="flex-wrap:wrap;gap:6px">
+        <button class="btn btn-primary btn-sm" onclick="dataEncode('base64','encode')">Base64编码</button>
+        <button class="btn btn-primary btn-sm" onclick="dataEncode('base64','decode')">Base64解码</button>
+        <button class="btn btn-primary btn-sm" onclick="dataEncode('url-encode','encode')">URL编码</button>
+        <button class="btn btn-primary btn-sm" onclick="dataEncode('url-encode','decode')">URL解码</button>
+        <button class="btn btn-primary btn-sm" onclick="dataEncode('hex','encode')">Hex编码</button>
+        <button class="btn btn-primary btn-sm" onclick="dataEncode('hex','decode')">Hex解码</button>
+      </div>
+      <div style="margin-top:12px">
+        <h4 style="font-size:14px;margin-bottom:8px">哈希计算</h4>
+        <div class="form-row" style="flex-wrap:wrap;gap:6px">
+          <input type="text" id="data-hash-input" placeholder="输入文本计算哈希" style="flex:1;min-width:200px">
+          <select id="data-hash-algo" style="padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--code-bg);color:var(--text)">
+            <option value="md5">MD5</option>
+            <option value="sha1">SHA1</option>
+            <option value="sha256" selected>SHA256</option>
+            <option value="sha512">SHA512</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="dataHash()">计算哈希</button>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <h4 style="font-size:14px;margin-bottom:8px">文件完整性校验</h4>
+        <div class="upload-zone" onclick="document.getElementById('data-file-hash').click()" ondrop="handleDrop(event,'data-file-hash')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" style="padding:12px">
+          <p>拖拽文件到此处计算哈希</p>
+        </div>
+        <div class="file-info" id="data-file-hash-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('data-file-hash')">&times;</button></div>
+        <input type="file" id="data-file-hash" style="display:none" onchange="onFileSelected('data-file-hash',this.files)">
+        <div class="form-row">
+          <select id="data-file-hash-algo" style="padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--code-bg);color:var(--text)">
+            <option value="md5">MD5</option>
+            <option value="sha1">SHA1</option>
+            <option value="sha256" selected>SHA256</option>
+            <option value="sha512">SHA512</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="dataFileHash()">计算文件哈希</button>
+        </div>
+      </div>
+    </div>
+    <!-- 敏感数据扫描 -->
+    <div class="card">
+      <div class="card-title">敏感数据扫描 - 自动检测PII/密码/密钥</div>
+      <textarea id="data-scan-input" placeholder="粘贴日志、配置文件、代码等文本，自动扫描敏感信息&#10;检测范围：手机号、身份证、银行卡、邮箱、IP地址、密码字段、密钥字段、内网地址" style="min-height:80px"></textarea>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="dataScan()">扫描敏感信息</button>
+        <button class="btn btn-primary" onclick="dataClassify()">数据分类分级</button>
+      </div>
+    </div>
+    <!-- 密码强度 -->
+    <div class="card">
+      <div class="card-title">密码强度检测</div>
+      <div class="form-row">
+        <input type="text" id="data-pwd-input" placeholder="输入密码检测强度">
+        <button class="btn btn-primary btn-sm" onclick="dataPasswordStrength()">检测强度</button>
+      </div>
+    </div>
+    <!-- CSV数据清洗 -->
+    <div class="card">
+      <div class="card-title">CSV数据清洗</div>
+      <div class="upload-zone" onclick="document.getElementById('data-csv').click()" ondrop="handleDrop(event,'data-csv')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" style="padding:20px">
+        <p>拖拽CSV文件到此处</p>
+      </div>
+      <div class="file-info" id="data-csv-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('data-csv')">&times;</button></div>
+      <input type="file" id="data-csv" accept=".csv" style="display:none" onchange="onFileSelected('data-csv',this.files)">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="callApi('/api/data/clean','data-csv')">清洗</button>
+      </div>
+    </div>
+    <div class="loading" id="data-loading"><div class="spinner"></div> 处理中...</div>
+    <div class="error-msg" id="data-error"></div>
+    <div class="result-area" id="data-result"></div>
+  </div>
+
+  <!-- 压缩包 -->
+  <div class="tab-content hidden" id="tab-archive">
+    <div class="card">
+      <div class="card-title">压缩包分析 - ZIP/RAR解压、密码爆破</div>
+      <div class="upload-zone" onclick="document.getElementById('arch-file').click()" ondrop="handleDrop(event,'arch-file')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="icon">&#128230;</div>
+        <p>拖拽压缩包文件到此处</p>
+      </div>
+      <div class="file-info" id="arch-file-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('arch-file')">&times;</button></div>
+      <input type="file" id="arch-file" accept=".zip,.rar,.7z" style="display:none" onchange="onFileSelected('arch-file',this.files)">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="callApi('/api/archive/analyze','arch-file')">分析结构</button>
+        <button class="btn btn-primary" onclick="callApi('/api/archive/bruteforce','arch-file')">密码爆破</button>
+        <button class="btn btn-primary" onclick="callApi('/api/archive/fix-encryption','arch-file')">伪加密修复</button>
+      </div>
+      <div style="margin-top:12px">
+        <div class="form-row">
+          <input type="text" id="arch-password" placeholder="输入密码解压">
+          <button class="btn btn-primary btn-sm" onclick="archiveExtract()">解压</button>
+        </div>
+      </div>
+    </div>
+    <div class="loading" id="archive-loading"><div class="spinner"></div> 处理中...</div>
+    <div class="error-msg" id="archive-error"></div>
+    <div class="result-area" id="archive-result"></div>
+  </div>
+
+  <!-- 隐写分析 -->
+  <div class="tab-content hidden" id="tab-stego">
+    <div class="card">
+      <div class="card-title">隐写分析 - LSB隐写、文件签名、binwalk</div>
+      <div class="upload-zone" onclick="document.getElementById('stego-file').click()" ondrop="handleDrop(event,'stego-file')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="icon">&#127912;</div>
+        <p>拖拽图片/音频文件到此处</p>
+        <p style="font-size:12px;color:#94a3b8;margin-top:4px">支持 PNG/JPG/GIF/BMP/WAV 等</p>
+      </div>
+      <div class="file-info" id="stego-file-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('stego-file')">&times;</button></div>
+      <input type="file" id="stego-file" accept="image/*,.wav" style="display:none" onchange="onFileSelected('stego-file',this.files)">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="callApi('/api/stego/analyze','stego-file')">图片分析</button>
+        <button class="btn btn-primary" onclick="callApi('/api/stego/lsb','stego-file')">LSB提取</button>
+        <button class="btn btn-primary" onclick="callApi('/api/stego/signature','stego-file')">文件签名</button>
+        <button class="btn btn-primary" onclick="callApi('/api/stego/binwalk','stego-file')">Binwalk扫描</button>
+        <button class="btn btn-primary" onclick="callApi('/api/stego/png-chunks','stego-file')">PNG分块</button>
+        <button class="btn btn-primary" onclick="callApi('/api/stego/gif-frames','stego-file')">GIF帧分析</button>
+        <button class="btn btn-primary" onclick="callApi('/api/stego/audio','stego-file')">音频分析</button>
+      </div>
+    </div>
+    <div class="loading" id="stego-loading"><div class="spinner"></div> 分析中...</div>
+    <div class="error-msg" id="stego-error"></div>
+    <div class="result-area" id="stego-result"></div>
+  </div>
+
+  <!-- 流量分析 -->
+  <div class="tab-content hidden" id="tab-traffic">
+    <div class="card">
+      <div class="card-title">流量分析 - pcap解析、USB键盘</div>
+      <div class="upload-zone" onclick="document.getElementById('traffic-file').click()" ondrop="handleDrop(event,'traffic-file')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="icon">&#128246;</div>
+        <p>拖拽pcap/pcapng文件到此处</p>
+      </div>
+      <div class="file-info" id="traffic-file-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('traffic-file')">&times;</button></div>
+      <input type="file" id="traffic-file" accept=".pcap,.pcapng,.cap" style="display:none" onchange="onFileSelected('traffic-file',this.files)">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="callApi('/api/traffic/analyze','traffic-file')">流量分析</button>
+        <button class="btn btn-primary" onclick="callApi('/api/traffic/strings','traffic-file')">字符串提取</button>
+        <button class="btn btn-primary" onclick="callApi('/api/traffic/usb','traffic-file')">USB键盘解析</button>
+      </div>
+    </div>
+    <div class="loading" id="traffic-loading"><div class="spinner"></div> 分析中...</div>
+    <div class="error-msg" id="traffic-error"></div>
+    <div class="result-area" id="traffic-result"></div>
+  </div>
+
+  <!-- Web安全 -->
+  <div class="tab-content hidden" id="tab-web">
+    <div class="card">
+      <div class="card-title">Web安全 - Payload生成</div>
+      <div class="btn-group" style="margin-bottom:16px">
+        <button class="btn btn-primary" onclick="webApi('sqli')">SQL注入</button>
+        <button class="btn btn-primary" onclick="webApi('sqli-guide')">注入完整指南</button>
+        <button class="btn btn-primary" onclick="webApi('sqli-bypass')">WAF绕过</button>
+        <button class="btn btn-primary" onclick="webApi('xss')">XSS</button>
+        <button class="btn btn-primary" onclick="webApi('ssrf')">SSRF</button>
+        <button class="btn btn-primary" onclick="webApi('xxe')">XXE</button>
+        <button class="btn btn-primary" onclick="webApi('lfi')">文件包含</button>
+        <button class="btn btn-primary" onclick="webApi('cmdi')">命令注入</button>
+        <button class="btn btn-primary" onclick="webApi('db-hardening')">数据库加固</button>
+      </div>
+      <div class="form-group">
+        <label>数据库类型（SQL注入用）</label>
+        <select id="web-db-type">
+          <option value="auto">自动</option>
+          <option value="mysql">MySQL</option>
+          <option value="mssql">MSSQL</option>
+          <option value="postgresql">PostgreSQL</option>
+          <option value="sqlite">SQLite</option>
+        </select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">sqlmap命令生成</div>
+      <div class="form-group">
+        <input type="text" id="web-url" placeholder="目标URL (如 http://example.com/page?id=1)">
+      </div>
+      <div class="form-row">
+        <div><input type="text" id="web-data" placeholder="POST数据 (可选)"></div>
+        <div><input type="text" id="web-cookie" placeholder="Cookie (可选)"></div>
+      </div>
+      <button class="btn btn-primary" onclick="generateSqlmap()">生成sqlmap命令</button>
+    </div>
+    <div class="loading" id="web-loading"><div class="spinner"></div> 生成中...</div>
+    <div class="error-msg" id="web-error"></div>
+    <div class="result-area" id="web-result"></div>
+  </div>
+
+  <!-- 防火墙 -->
+  <div class="tab-content hidden" id="tab-firewall">
+    <!-- 快捷场景 -->
+    <div class="card">
+      <div class="card-title">一键生成 - 选择场景直接生成规则</div>
+      <div class="form-row" style="margin-bottom:12px">
+        <select id="fw-platform" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--code-bg);color:var(--text);font-size:14px" onchange="loadFirewallScenarios()">
+          <option value="iptables">iptables (Linux)</option>
+          <option value="nftables">nftables (现代Linux)</option>
+          <option value="windows">Windows防火墙</option>
+        </select>
+        <select id="fw-scenario" style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--code-bg);color:var(--text);font-size:14px"></select>
+        <button class="btn btn-primary" onclick="generateFirewall()">生成规则</button>
+      </div>
+      <div id="fw-variables"></div>
+    </div>
+    <!-- 服务器预设 -->
+    <div class="card">
+      <div class="card-title">服务器预设 - 点击直接生成完整配置</div>
+      <div class="scenario-grid">
+        <div class="scenario-card" onclick="fwPreset('web服务器')">
+          <div class="icon">🌐</div>
+          <div class="name">Web服务器</div>
+          <div class="desc">HTTP/HTTPS + SSH</div>
+        </div>
+        <div class="scenario-card" onclick="fwPreset('数据库服务器')">
+          <div class="icon">🗄️</div>
+          <div class="name">数据库服务器</div>
+          <div class="desc">MySQL内网访问</div>
+        </div>
+        <div class="scenario-card" onclick="fwPreset('邮件服务器')">
+          <div class="icon">📧</div>
+          <div class="name">邮件服务器</div>
+          <div class="desc">SMTP/IMAP/POP3</div>
+        </div>
+        <div class="scenario-card" onclick="fwPreset('DNS服务器')">
+          <div class="icon">🔗</div>
+          <div class="name">DNS服务器</div>
+          <div class="desc">UDP/TCP 53</div>
+        </div>
+        <div class="scenario-card" onclick="fwPreset('FTP服务器')">
+          <div class="icon">📁</div>
+          <div class="name">FTP服务器</div>
+          <div class="desc">主动+被动模式</div>
+        </div>
+        <div class="scenario-card" onclick="fwPreset('综合加固')">
+          <div class="icon">🛡️</div>
+          <div class="name">综合加固</div>
+          <div class="desc">推荐！全面防护</div>
+        </div>
+      </div>
+    </div>
+    <!-- 竞赛题目 -->
+    <div class="card">
+      <div class="card-title">竞赛题目模板 - 12种常见题型</div>
+      <div class="scenario-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))">
+        <div class="scenario-card" onclick="competitionFw(1)" style="padding:12px">
+          <div class="icon">📋</div>
+          <div class="name" style="font-size:12px">IP白名单</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(2)" style="padding:12px">
+          <div class="icon">🚫</div>
+          <div class="name" style="font-size:12px">IP黑名单</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(3)" style="padding:12px">
+          <div class="icon">🔀</div>
+          <div class="name" style="font-size:12px">子网+排除</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(4)" style="padding:12px">
+          <div class="icon">📊</div>
+          <div class="name" style="font-size:12px">连接数限制</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(5)" style="padding:12px">
+          <div class="icon">🔄</div>
+          <div class="name" style="font-size:12px">NAT FTP</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(6)" style="padding:12px">
+          <div class="icon">🔒</div>
+          <div class="name" style="font-size:12px">SSH防爆破</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(7)" style="padding:12px">
+          <div class="icon">🔢</div>
+          <div class="name" style="font-size:12px">端口范围</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(8)" style="padding:12px">
+          <div class="icon">💻</div>
+          <div class="name" style="font-size:12px">MAC过滤</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(9)" style="padding:12px">
+          <div class="icon">⏰</div>
+          <div class="name" style="font-size:12px">时间控制</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(10)" style="padding:12px">
+          <div class="icon">🎯</div>
+          <div class="name" style="font-size:12px">多端口配置</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(11)" style="padding:12px">
+          <div class="icon">🛡️</div>
+          <div class="name" style="font-size:12px">防DDoS</div>
+        </div>
+        <div class="scenario-card" onclick="competitionFw(12)" style="padding:12px">
+          <div class="icon">🌐</div>
+          <div class="name" style="font-size:12px">NAT映射</div>
+        </div>
+      </div>
+      <div id="fw-comp-variables" style="margin-top:12px"></div>
+    </div>
+    <!-- 规则分析 -->
+    <div class="card">
+      <div class="card-title">规则分析 - 粘贴规则自动解析</div>
+      <textarea id="fw-analyze-input" placeholder="粘贴iptables/nftables规则，自动解析含义并评估安全性&#10;示例：&#10;iptables -A INPUT -s 192.168.1.0/24 -p tcp --dport 22 -j ACCEPT&#10;iptables -A INPUT -p tcp --dport 22 -j DROP" style="min-height:80px;font-family:monospace;font-size:13px"></textarea>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="analyzeFirewallRules()">分析规则</button>
+      </div>
+    </div>
+    <div class="loading" id="firewall-loading"><div class="spinner"></div> 生成中...</div>
+    <div class="error-msg" id="firewall-error"></div>
+    <div class="result-area" id="firewall-result"></div>
+  </div>
+
+  <!-- 信息网络 -->
+  <div class="tab-content hidden" id="tab-network">
+    <!-- 子网计算器 -->
+    <div class="card">
+      <div class="card-title">子网计算器 - 快速计算网段信息</div>
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">CIDR计算</h4>
+          <div class="form-row">
+            <input type="text" id="net-subnet-cidr" placeholder="192.168.1.0/24" style="flex:1">
+            <button class="btn btn-primary btn-sm" onclick="netSubnetCalc()">计算</button>
+          </div>
+        </div>
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">子网划分</h4>
+          <div class="form-row">
+            <input type="text" id="net-split-cidr" placeholder="192.168.1.0/24" style="flex:1">
+            <input type="number" id="net-split-prefix" placeholder="新前缀(如26)" style="width:120px">
+            <button class="btn btn-primary btn-sm" onclick="netSubnetSplit()">划分</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <h4 style="font-size:14px;margin-bottom:8px">IP地址查询</h4>
+        <div class="form-row">
+          <input type="text" id="net-ip-addr" placeholder="输入IP地址 如 192.168.1.100" style="flex:1">
+          <button class="btn btn-primary btn-sm" onclick="netIpInfo()">查询</button>
+        </div>
+      </div>
+    </div>
+    <!-- 网络配置 -->
+    <div class="card">
+      <div class="card-title">网络配置 - 一键生成配置命令</div>
+      <div class="scenario-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr))">
+        <div class="scenario-card" onclick="netConfig('show')" style="padding:12px">
+          <div class="icon">📋</div>
+          <div class="name" style="font-size:12px">查看网络</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('static-ip')" style="padding:12px">
+          <div class="icon">🌐</div>
+          <div class="name" style="font-size:12px">静态IP</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('dhcp')" style="padding:12px">
+          <div class="icon">🔄</div>
+          <div class="name" style="font-size:12px">DHCP</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('dns')" style="padding:12px">
+          <div class="icon">🔗</div>
+          <div class="name" style="font-size:12px">DNS配置</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('hosts')" style="padding:12px">
+          <div class="icon">📝</div>
+          <div class="name" style="font-size:12px">hosts映射</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('hostname')" style="padding:12px">
+          <div class="icon">💻</div>
+          <div class="name" style="font-size:12px">主机名</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('route-add')" style="padding:12px">
+          <div class="icon">🔀</div>
+          <div class="name" style="font-size:12px">添加路由</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('route-show')" style="padding:12px">
+          <div class="icon">📊</div>
+          <div class="name" style="font-size:12px">路由表</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('vlan')" style="padding:12px">
+          <div class="icon">🏷️</div>
+          <div class="name" style="font-size:12px">VLAN</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('bond')" style="padding:12px">
+          <div class="icon">🔗</div>
+          <div class="name" style="font-size:12px">网卡绑定</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('bridge')" style="padding:12px">
+          <div class="icon">🌉</div>
+          <div class="name" style="font-size:12px">网桥</div>
+        </div>
+        <div class="scenario-card" onclick="netConfig('firewall-cmd')" style="padding:12px">
+          <div class="icon">🛡️</div>
+          <div class="name" style="font-size:12px">firewalld</div>
+        </div>
+      </div>
+      <div id="net-config-vars" style="margin-top:8px"></div>
+    </div>
+    <!-- DNS/DHCP服务 -->
+    <div class="card">
+      <div class="card-title">DNS/DHCP服务 - 服务器配置</div>
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">DNS服务器(BIND)</h4>
+          <div class="btn-group" style="flex-wrap:wrap;gap:6px">
+            <button class="btn btn-primary btn-sm" onclick="netDns('install')">安装</button>
+            <button class="btn btn-primary btn-sm" onclick="netDns('config-master')">主DNS</button>
+            <button class="btn btn-primary btn-sm" onclick="netDns('config-slave')">从DNS</button>
+            <button class="btn btn-primary btn-sm" onclick="netDns('test')">测试</button>
+            <button class="btn btn-primary btn-sm" onclick="netDns('reverse')">反向解析</button>
+          </div>
+        </div>
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">DHCP服务器</h4>
+          <div class="btn-group" style="flex-wrap:wrap;gap:6px">
+            <button class="btn btn-primary btn-sm" onclick="netDhcp('install')">安装</button>
+            <button class="btn btn-primary btn-sm" onclick="netDhcp('config')">配置</button>
+            <button class="btn btn-primary btn-sm" onclick="netDhcp('test')">测试</button>
+          </div>
+        </div>
+      </div>
+      <div id="net-service-vars" style="margin-top:8px"></div>
+    </div>
+    <!-- 网络诊断 -->
+    <div class="card">
+      <div class="card-title">网络诊断 - 故障排查工具</div>
+      <div class="form-row" style="margin-bottom:12px">
+        <input type="text" id="net-diag-target" placeholder="目标地址 如 8.8.8.8" style="flex:1">
+        <input type="text" id="net-diag-port" placeholder="端口(可选)" style="width:100px">
+        <button class="btn btn-primary btn-sm" onclick="netDiag('ping')">Ping</button>
+        <button class="btn btn-primary btn-sm" onclick="netDiag('traceroute')">路由追踪</button>
+        <button class="btn btn-primary btn-sm" onclick="netDiag('port-check')">端口检测</button>
+        <button class="btn btn-primary btn-sm" onclick="netDiag('dns-check')">DNS检测</button>
+      </div>
+      <div class="scenario-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr))">
+        <div class="scenario-card" onclick="netDiag('netstat')" style="padding:12px">
+          <div class="icon">📊</div>
+          <div class="name" style="font-size:12px">连接状态</div>
+        </div>
+        <div class="scenario-card" onclick="netDiag('tcpdump')" style="padding:12px">
+          <div class="icon">📡</div>
+          <div class="name" style="font-size:12px">抓包</div>
+        </div>
+        <div class="scenario-card" onclick="netDiag('bandwidth')" style="padding:12px">
+          <div class="icon">📈</div>
+          <div class="name" style="font-size:12px">带宽测试</div>
+        </div>
+        <div class="scenario-card" onclick="netDiag('arp')" style="padding:12px">
+          <div class="icon">🔍</div>
+          <div class="name" style="font-size:12px">ARP表</div>
+        </div>
+      </div>
+    </div>
+    <!-- 网络服务 -->
+    <div class="card">
+      <div class="card-title">网络服务 - 常用服务管理</div>
+      <div class="scenario-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr))">
+        <div class="scenario-card" onclick="netService('ssh')" style="padding:12px">
+          <div class="icon">🔒</div>
+          <div class="name" style="font-size:12px">SSH</div>
+        </div>
+        <div class="scenario-card" onclick="netService('httpd')" style="padding:12px">
+          <div class="icon">🌐</div>
+          <div class="name" style="font-size:12px">Apache</div>
+        </div>
+        <div class="scenario-card" onclick="netService('nginx')" style="padding:12px">
+          <div class="icon">🟢</div>
+          <div class="name" style="font-size:12px">Nginx</div>
+        </div>
+        <div class="scenario-card" onclick="netService('vsftpd')" style="padding:12px">
+          <div class="icon">📁</div>
+          <div class="name" style="font-size:12px">FTP</div>
+        </div>
+        <div class="scenario-card" onclick="netService('chrony')" style="padding:12px">
+          <div class="icon">⏰</div>
+          <div class="name" style="font-size:12px">NTP</div>
+        </div>
+      </div>
+    </div>
+    <!-- 竞赛题目 -->
+    <div class="card">
+      <div class="card-title">竞赛题目模板 - 常见网络题型</div>
+      <div class="scenario-grid" style="grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))">
+        <div class="scenario-card" onclick="netCompetition(1)" style="padding:12px">
+          <div class="icon">🔢</div>
+          <div class="name" style="font-size:12px">子网划分</div>
+        </div>
+        <div class="scenario-card" onclick="netCompetition(2)" style="padding:12px">
+          <div class="icon">🌐</div>
+          <div class="name" style="font-size:12px">静态IP配置</div>
+        </div>
+        <div class="scenario-card" onclick="netCompetition(3)" style="padding:12px">
+          <div class="icon">🔗</div>
+          <div class="name" style="font-size:12px">DNS配置</div>
+        </div>
+        <div class="scenario-card" onclick="netCompetition(4)" style="padding:12px">
+          <div class="icon">🔄</div>
+          <div class="name" style="font-size:12px">DHCP配置</div>
+        </div>
+        <div class="scenario-card" onclick="netCompetition(5)" style="padding:12px">
+          <div class="icon">🔧</div>
+          <div class="name" style="font-size:12px">故障排除</div>
+        </div>
+        <div class="scenario-card" onclick="netCompetition(6)" style="padding:12px">
+          <div class="icon">🏷️</div>
+          <div class="name" style="font-size:12px">VLAN配置</div>
+        </div>
+        <div class="scenario-card" onclick="netCompetition(7)" style="padding:12px">
+          <div class="icon">🔀</div>
+          <div class="name" style="font-size:12px">路由配置</div>
+        </div>
+        <div class="scenario-card" onclick="netCompetition(8)" style="padding:12px">
+          <div class="icon">⏰</div>
+          <div class="name" style="font-size:12px">NTP同步</div>
+        </div>
+      </div>
+    </div>
+    <div class="loading" id="network-loading"><div class="spinner"></div> 处理中...</div>
+    <div class="error-msg" id="network-error"></div>
+    <div class="result-area" id="network-result"></div>
+  </div>
+
+  <!-- 渗透测试 -->
+  <div class="tab-content hidden" id="tab-pentest">
+    <!-- 竞赛渗透题目 -->
+    <div class="card">
+      <div class="card-title">竞赛渗透题目 - 点击卡片一键生成操作步骤和命令</div>
+      <div class="scenario-grid">
+        <div class="scenario-card" onclick="pentCompetition(1)">
+          <div class="icon">&#128269;</div>
+          <div class="name">信息收集</div>
+          <div class="desc">扫描/枚举/指纹</div>
+        </div>
+        <div class="scenario-card" onclick="pentCompetition(2)">
+          <div class="icon">&#128187;</div>
+          <div class="name">Web渗透</div>
+          <div class="desc">SQL注入/文件上传</div>
+        </div>
+        <div class="scenario-card" onclick="pentCompetition(3)">
+          <div class="icon">&#128273;</div>
+          <div class="name">密码破解</div>
+          <div class="desc">爆破/绕过认证</div>
+        </div>
+        <div class="scenario-card" onclick="pentCompetition(4)">
+          <div class="icon">&#128165;</div>
+          <div class="name">漏洞利用</div>
+          <div class="desc">EXP/Getshell</div>
+        </div>
+        <div class="scenario-card" onclick="pentCompetition(5)">
+          <div class="icon">&#11014;</div>
+          <div class="name">权限提升</div>
+          <div class="desc">Linux/Windows提权</div>
+        </div>
+        <div class="scenario-card" onclick="pentCompetition(6)">
+          <div class="icon">&#128270;</div>
+          <div class="name">后渗透</div>
+          <div class="desc">信息收集/数据提取</div>
+        </div>
+        <div class="scenario-card" onclick="pentCompetition(7)">
+          <div class="icon">&#128257;</div>
+          <div class="name">横向移动</div>
+          <div class="desc">隧道/代理/PtH</div>
+        </div>
+        <div class="scenario-card" onclick="pentCompetition(8)">
+          <div class="icon">&#128221;</div>
+          <div class="name">报告撰写</div>
+          <div class="desc">痕迹清理/报告</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 信息收集 -->
+    <div class="card">
+      <div class="card-title">信息收集 - 目标侦察与指纹识别</div>
+      <div class="form-row">
+        <input type="text" id="pent-info-target" placeholder="目标IP/域名 (如 192.168.1.1 或 example.com)">
+        <button class="btn btn-primary" onclick="pentInfoGather()">信息收集</button>
+        <button class="btn btn-primary" onclick="pentWebEnum()">Web枚举</button>
+      </div>
+    </div>
+
+    <!-- 端口扫描 -->
+    <div class="card">
+      <div class="card-title">端口扫描 - Nmap命令生成</div>
+      <div class="form-row">
+        <input type="text" id="nmap-target" placeholder="目标IP/网段">
+        <button class="btn btn-primary" onclick="pentestNmap()">全类型扫描</button>
+      </div>
+      <div class="btn-group" style="margin-top:8px">
+        <button class="btn btn-primary" onclick="pentNmapType('basic')">基础扫描</button>
+        <button class="btn btn-primary" onclick="pentNmapType('full')">全端口</button>
+        <button class="btn btn-primary" onclick="pentNmapType('stealth')">隐蔽扫描</button>
+        <button class="btn btn-primary" onclick="pentNmapType('vuln')">漏洞扫描</button>
+        <button class="btn btn-primary" onclick="pentNmapType('smb')">SMB扫描</button>
+        <button class="btn btn-primary" onclick="pentNmapType('web')">Web扫描</button>
+      </div>
+    </div>
+
+    <!-- 漏洞利用建议 -->
+    <div class="card">
+      <div class="card-title">漏洞利用建议 - 输入服务自动推荐EXP</div>
+      <div class="form-row">
+        <input type="text" id="pent-exploit-svc" placeholder="服务名 (ssh/http/smb/ftp/mysql/rdp/redis/tomcat)">
+        <input type="text" id="pent-exploit-ver" placeholder="版本号(可选)">
+        <button class="btn btn-primary" onclick="pentExploitSuggest()">查询漏洞</button>
+      </div>
+    </div>
+
+    <!-- 密码破解 -->
+    <div class="card">
+      <div class="card-title">密码破解与凭据攻击</div>
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">Hash破解</h4>
+          <div class="form-row">
+            <input type="text" id="hash-input" placeholder="Hash值">
+            <button class="btn btn-primary btn-sm" onclick="pentestHashCrack()">破解命令</button>
+          </div>
+        </div>
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">Base64凭据解码</h4>
+          <div class="form-row">
+            <input type="text" id="creds-input" placeholder="Base64编码的凭据">
+            <button class="btn btn-primary btn-sm" onclick="pentestDecodeCreds()">解码</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <h4 style="font-size:14px;margin-bottom:8px">批量爆破命令</h4>
+        <div class="form-row">
+          <input type="text" id="pent-cred-target" placeholder="目标IP">
+          <button class="btn btn-primary" onclick="pentCredAttack()">生成爆破命令</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shell生成 -->
+    <div class="card">
+      <div class="card-title">反弹Shell与Payload生成</div>
+      <div class="form-row">
+        <input type="text" id="shell-lhost" placeholder="监听IP (LHOST)">
+        <input type="number" id="shell-lport" placeholder="端口" value="4444">
+        <button class="btn btn-primary" onclick="pentestReverseShell()">生成反弹Shell</button>
+      </div>
+    </div>
+
+    <!-- 提权与后渗透 -->
+    <div class="card">
+      <div class="card-title">提权检查与后渗透</div>
+      <div class="scenario-grid">
+        <div class="scenario-card" onclick="pentestPrivesc('linux')">
+          <div class="icon">&#127968;</div>
+          <div class="name">Linux提权</div>
+          <div class="desc">SUID/sudo/cron</div>
+        </div>
+        <div class="scenario-card" onclick="pentestPrivesc('windows')">
+          <div class="icon">&#128187;</div>
+          <div class="name">Windows提权</div>
+          <div class="desc">补丁/服务/注册表</div>
+        </div>
+        <div class="scenario-card" onclick="pentPostExploit('linux')">
+          <div class="icon">&#128270;</div>
+          <div class="name">Linux后渗透</div>
+          <div class="desc">信息/持久化/清理</div>
+        </div>
+        <div class="scenario-card" onclick="pentPostExploit('windows')">
+          <div class="icon">&#128270;</div>
+          <div class="name">Windows后渗透</div>
+          <div class="desc">信息/持久化/清理</div>
+        </div>
+        <div class="scenario-card" onclick="pentLateral('linux')">
+          <div class="icon">&#128257;</div>
+          <div class="name">Linux横向</div>
+          <div class="desc">隧道/代理/转发</div>
+        </div>
+        <div class="scenario-card" onclick="pentLateral('windows')">
+          <div class="icon">&#128257;</div>
+          <div class="name">Windows横向</div>
+          <div class="desc">PtH/凭据/转发</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading" id="pentest-loading"><div class="spinner"></div> 生成中...</div>
+    <div class="error-msg" id="pentest-error"></div>
+    <div class="result-area" id="pentest-result"></div>
+  </div>
+
+  <!-- 日志分析 -->
+  <div class="tab-content hidden" id="tab-log">
+    <div class="card">
+      <div class="card-title">日志分析 - Web日志、系统日志、安全事件</div>
+      <div class="upload-zone" onclick="document.getElementById('log-file').click()" ondrop="handleDrop(event,'log-file')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="icon">&#128220;</div>
+        <p>拖拽日志文件到此处</p>
+        <p style="font-size:12px;color:#94a3b8;margin-top:4px">支持 Apache/Nginx日志、auth.log、Windows事件日志、JSON日志</p>
+      </div>
+      <div class="file-info" id="log-file-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('log-file')">&times;</button></div>
+      <input type="file" id="log-file" style="display:none" onchange="onFileSelected('log-file',this.files)">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="callApi('/api/log/web','log-file')">Web日志分析</button>
+        <button class="btn btn-primary" onclick="callApi('/api/log/auth','log-file')">认证日志分析</button>
+        <button class="btn btn-primary" onclick="callApi('/api/log/windows','log-file')">Windows日志</button>
+        <button class="btn btn-primary" onclick="callApi('/api/log/json','log-file')">JSON日志</button>
+      </div>
+    </div>
+    <div class="loading" id="log-loading"><div class="spinner"></div> 分析中...</div>
+    <div class="error-msg" id="log-error"></div>
+    <div class="result-area" id="log-result"></div>
+  </div>
+
+  <!-- 电子取证 -->
+  <div class="tab-content hidden" id="tab-forensics">
+    <!-- 竞赛取证题目 -->
+    <div class="card">
+      <div class="card-title">竞赛取证题目 - 点击卡片一键生成操作步骤和命令</div>
+      <div class="scenario-grid">
+        <div class="scenario-card" onclick="forenCompetition(1)">
+          <div class="icon">&#128196;</div>
+          <div class="name">文件哈希</div>
+          <div class="desc">MD5/SHA256校验</div>
+        </div>
+        <div class="scenario-card" onclick="forenCompetition(2)">
+          <div class="icon">&#128260;</div>
+          <div class="name">文件恢复</div>
+          <div class="desc">磁盘镜像恢复</div>
+        </div>
+        <div class="scenario-card" onclick="forenCompetition(3)">
+          <div class="icon">&#129504;</div>
+          <div class="name">内存取证</div>
+          <div class="desc">Volatility分析</div>
+        </div>
+        <div class="scenario-card" onclick="forenCompetition(4)">
+          <div class="icon">&#128225;</div>
+          <div class="name">流量取证</div>
+          <div class="desc">pcap证据提取</div>
+        </div>
+        <div class="scenario-card" onclick="forenCompetition(5)">
+          <div class="icon">&#128269;</div>
+          <div class="name">签名检测</div>
+          <div class="desc">文件签名/隐写</div>
+        </div>
+        <div class="scenario-card" onclick="forenCompetition(6)">
+          <div class="icon">&#128274;</div>
+          <div class="name">注册表取证</div>
+          <div class="desc">Windows注册表</div>
+        </div>
+        <div class="scenario-card" onclick="forenCompetition(7)">
+          <div class="icon">&#128451;</div>
+          <div class="name">数据库取证</div>
+          <div class="desc">SQLite分析</div>
+        </div>
+        <div class="scenario-card" onclick="forenCompetition(8)">
+          <div class="icon">&#128203;</div>
+          <div class="name">证据报告</div>
+          <div class="desc">证据链与报告</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 文件取证分析 -->
+    <div class="card">
+      <div class="card-title">文件取证分析 - 上传文件自动分析</div>
+      <div class="upload-zone" onclick="document.getElementById('foren-file').click()" ondrop="handleDrop(event,'foren-file')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="icon">&#128269;</div>
+        <p>拖拽任意文件/镜像到此处</p>
+        <p style="font-size:12px;color:#94a3b8;margin-top:4px">支持任意文件、磁盘镜像、内存转储、pcap、图片、数据库</p>
+      </div>
+      <div class="file-info" id="foren-file-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('foren-file')">&times;</button></div>
+      <input type="file" id="foren-file" style="display:none" onchange="onFileSelected('foren-file',this.files)">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/metadata','foren-file')">文件元数据</button>
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/strings','foren-file')">字符串提取</button>
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/file-signature','foren-file')">签名扫描</button>
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/timeline','foren-file')">时间线</button>
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/stego-detect','foren-file')">隐写检测</button>
+      </div>
+      <div class="btn-group" style="margin-top:8px">
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/recover','foren-file')">文件恢复</button>
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/memory','foren-file')">内存分析</button>
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/pcap','foren-file')">流量取证</button>
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/exif','foren-file')">EXIF分析</button>
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/registry','foren-file')">注册表分析</button>
+        <button class="btn btn-primary" onclick="callApi('/api/forensics/sqlite','foren-file')">SQLite取证</button>
+      </div>
+    </div>
+
+    <!-- Hex转储分析 -->
+    <div class="card">
+      <div class="card-title">Hex转储分析 - 十六进制查看器</div>
+      <div class="form-row">
+        <label style="font-size:13px;color:var(--text-secondary)">偏移量</label>
+        <input type="number" id="foren-hex-offset" value="0" min="0" step="16" style="width:120px">
+        <label style="font-size:13px;color:var(--text-secondary)">长度</label>
+        <input type="number" id="foren-hex-length" value="512" min="16" max="4096" step="16" style="width:120px">
+        <button class="btn btn-primary" onclick="forenHexDump()">转储分析</button>
+      </div>
+    </div>
+
+    <!-- 取证命令参考 -->
+    <div class="card">
+      <div class="card-title">取证命令参考 - 点击卡片查看命令</div>
+      <div class="scenario-grid">
+        <div class="scenario-card" onclick="forensicsCmd('volatility')">
+          <div class="icon">&#129504;</div>
+          <div class="name">Volatility</div>
+          <div class="desc">内存取证命令</div>
+        </div>
+        <div class="scenario-card" onclick="forensicsCmd('disk')">
+          <div class="icon">&#128187;</div>
+          <div class="name">磁盘取证</div>
+          <div class="desc">SleuthKit等</div>
+        </div>
+        <div class="scenario-card" onclick="forenNetworkCmds()">
+          <div class="icon">&#128225;</div>
+          <div class="name">网络取证</div>
+          <div class="desc">tcpdump/Wireshark</div>
+        </div>
+        <div class="scenario-card" onclick="forenMobileCmds()">
+          <div class="icon">&#128241;</div>
+          <div class="name">移动取证</div>
+          <div class="desc">Android/iOS</div>
+        </div>
+        <div class="scenario-card" onclick="forensicsCmd('evidence-guide')">
+          <div class="icon">&#128203;</div>
+          <div class="name">证据指南</div>
+          <div class="desc">收集规范/证据链</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading" id="forensics-loading"><div class="spinner"></div> 分析中...</div>
+    <div class="error-msg" id="forensics-error"></div>
+    <div class="result-area" id="forensics-result"></div>
+  </div>
+
+  <!-- 数据清洗 -->
+  <div class="tab-content hidden" id="tab-dataclean">
+    <!-- 竞赛一键清洗 -->
+    <div class="card">
+      <div class="card-title">竞赛一键清洗 - 上传文件 + 选择表类型 = 自动完成</div>
+      <div class="upload-zone" onclick="document.getElementById('comp-file').click()" ondrop="handleDrop(event,'comp-file')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="icon">&#128202;</div>
+        <p>拖拽 Excel(.xlsx) 或 CSV 文件到此处</p>
+        <p style="font-size:12px;color:#94a3b8;margin-top:4px">支持 .xlsx / .xls / .csv 格式</p>
+      </div>
+      <div class="file-info" id="comp-file-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('comp-file')">&times;</button></div>
+      <input type="file" id="comp-file" style="display:none" accept=".xlsx,.xls,.csv" onchange="onFileSelected('comp-file',this.files)">
+      <div class="form-row" style="margin-top:12px">
+        <select id="comp-table-type">
+          <option value="customer">客户表 (身份证/手机/银行卡校验+脱敏)</option>
+          <option value="transaction">交易表 (金额格式化/日期标准化)</option>
+          <option value="account">账户表 (余额脱敏/邮箱脱敏)</option>
+        </select>
+        <button class="btn btn-primary" onclick="competitionClean()">一键清洗</button>
+      </div>
+    </div>
+
+    <!-- Excel解析 -->
+    <div class="card">
+      <div class="card-title">Excel文件解析</div>
+      <div class="upload-zone" onclick="document.getElementById('excel-file').click()" ondrop="handleDrop(event,'excel-file')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="icon">&#128204;</div>
+        <p>拖拽 Excel 文件到此处，查看结构和数据预览</p>
+      </div>
+      <div class="file-info" id="excel-file-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('excel-file')">&times;</button></div>
+      <input type="file" id="excel-file" style="display:none" accept=".xlsx,.xls" onchange="onFileSelected('excel-file',this.files)">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="callApi('/api/clean/excel','excel-file')">解析结构</button>
+        <button class="btn btn-primary" onclick="excelQuality()">数据质量分析</button>
+      </div>
+    </div>
+
+    <!-- 跨表校验 -->
+    <div class="card">
+      <div class="card-title">跨表参照完整性校验</div>
+      <div class="grid-2">
+        <div>
+          <label style="font-size:13px;color:var(--text-secondary)">主表文件</label>
+          <div class="upload-zone" style="padding:20px" onclick="document.getElementById('ref-file1').click()" ondrop="handleDrop(event,'ref-file1')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+            <p>点击上传主表</p>
+          </div>
+          <div class="file-info" id="ref-file1-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('ref-file1')">&times;</button></div>
+          <input type="file" id="ref-file1" style="display:none" accept=".xlsx,.xls,.csv" onchange="onFileSelected('ref-file1',this.files)">
+          <input type="text" id="ref-col1" placeholder="主表关联列名(如 客户ID)" style="margin-top:8px">
+        </div>
+        <div>
+          <label style="font-size:13px;color:var(--text-secondary)">引用表文件</label>
+          <div class="upload-zone" style="padding:20px" onclick="document.getElementById('ref-file2').click()" ondrop="handleDrop(event,'ref-file2')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+            <p>点击上传引用表</p>
+          </div>
+          <div class="file-info" id="ref-file2-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('ref-file2')">&times;</button></div>
+          <input type="file" id="ref-file2" style="display:none" accept=".xlsx,.xls,.csv" onchange="onFileSelected('ref-file2',this.files)">
+          <input type="text" id="ref-col2" placeholder="引用表关联列名(如 ID)" style="margin-top:8px">
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="refIntegrityCheck()">开始校验</button>
+    </div>
+
+    <!-- 批量工具 -->
+    <div class="card">
+      <div class="card-title">批量工具</div>
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">余额脱敏 (保留前2后2，中间*)</h4>
+          <textarea id="balance-input" placeholder="每行一个金额，如:&#10;12345.67&#10;98765.43&#10;500.00" style="min-height:80px"></textarea>
+          <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="balanceDesensitize()">批量脱敏</button>
+        </div>
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">年龄分段转换</h4>
+          <textarea id="age-input" placeholder="每行一个年龄，如:&#10;23&#10;35&#10;48" style="min-height:80px"></textarea>
+          <div class="form-row" style="margin-top:8px">
+            <select id="age-mode">
+              <option value="5year">5年区间</option>
+              <option value="decade">10年区间</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="ageTransform()">批量转换</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 基础工具 -->
+    <div class="card">
+      <div class="card-title">基础工具</div>
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">Luhn算法校验</h4>
+          <div class="form-row">
+            <input type="text" id="luhn-input" placeholder="银行卡号">
+            <button class="btn btn-primary btn-sm" onclick="cleanApi('luhn')">校验</button>
+          </div>
+        </div>
+        <div>
+          <h4 style="font-size:14px;margin-bottom:8px">身份证校验</h4>
+          <div class="form-row">
+            <input type="text" id="idcard-input" placeholder="18位身份证号">
+            <button class="btn btn-primary btn-sm" onclick="cleanApi('id-card')">校验</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <h4 style="font-size:14px;margin-bottom:8px">哈希计算</h4>
+        <div class="form-row">
+          <input type="text" id="hash-text" placeholder="输入文本">
+          <select id="hash-algo" style="width:120px">
+            <option value="md5">MD5</option>
+            <option value="sha1">SHA1</option>
+            <option value="sha256">SHA256</option>
+            <option value="sha512">SHA512</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="cleanApi('hash')">计算</button>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <h4 style="font-size:14px;margin-bottom:8px">CSV自动脱敏</h4>
+        <div class="upload-zone" style="padding:20px" onclick="document.getElementById('clean-file').click()" ondrop="handleDrop(event,'clean-file')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+          <p>拖拽CSV文件到此处</p>
+        </div>
+        <div class="file-info" id="clean-file-info"><span class="name"></span><span class="size"></span><button class="clear" onclick="clearFile('clean-file')">&times;</button></div>
+        <input type="file" id="clean-file" style="display:none" accept=".csv" onchange="onFileSelected('clean-file',this.files)">
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="callApi('/api/clean/desensitize','clean-file')">自动脱敏</button>
+          <button class="btn btn-primary" onclick="callApi('/api/clean/preview','clean-file')">数据质量预览</button>
+        </div>
+      </div>
+    </div>
+    <div class="loading" id="dataclean-loading"><div class="spinner"></div> 处理中...</div>
+    <div class="error-msg" id="dataclean-error"></div>
+    <div class="result-area" id="dataclean-result"></div>
+  </div>
+
+  <!-- 数据库安全 -->
+  <div class="tab-content hidden" id="tab-dbsec">
+    <!-- 竞赛一键场景 -->
+    <div class="card">
+      <div class="card-title">竞赛数据库题目 - 点击卡片直接生成命令</div>
+      <div class="scenario-grid">
+        <div class="scenario-card" onclick="dbCompetition(1)">
+          <div class="icon">👤</div>
+          <div class="name">场景1</div>
+          <div class="desc">用户权限管理</div>
+        </div>
+        <div class="scenario-card" onclick="dbCompetition(2)">
+          <div class="icon">📋</div>
+          <div class="name">场景2</div>
+          <div class="desc">建表与约束</div>
+        </div>
+        <div class="scenario-card" onclick="dbCompetition(3)">
+          <div class="icon">⚡</div>
+          <div class="name">场景3</div>
+          <div class="desc">索引与性能优化</div>
+        </div>
+        <div class="scenario-card" onclick="dbCompetition(4)">
+          <div class="icon">👁️</div>
+          <div class="name">场景4</div>
+          <div class="desc">视图与存储过程</div>
+        </div>
+        <div class="scenario-card" onclick="dbCompetition(5)">
+          <div class="icon">💾</div>
+          <div class="name">场景5</div>
+          <div class="desc">数据库备份与恢复</div>
+        </div>
+        <div class="scenario-card" onclick="dbCompetition(6)">
+          <div class="icon">🔒</div>
+          <div class="name">场景6</div>
+          <div class="desc">MySQL安全加固</div>
+        </div>
+        <div class="scenario-card" onclick="dbCompetition(7)">
+          <div class="icon">🔄</div>
+          <div class="name">场景7</div>
+          <div class="desc">事务与锁</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据库设计模板 -->
+    <div class="card">
+      <div class="card-title">数据库设计模板 - 一键生成建表SQL</div>
+      <div class="scenario-grid">
+        <div class="scenario-card" onclick="dbDesignTemplate('student')">
+          <div class="icon">🎓</div>
+          <div class="name">学生管理系统</div>
+          <div class="desc">学生+课程+选课</div>
+        </div>
+        <div class="scenario-card" onclick="dbDesignTemplate('library')">
+          <div class="icon">📖</div>
+          <div class="name">图书管理系统</div>
+          <div class="desc">图书+读者+借阅</div>
+        </div>
+        <div class="scenario-card" onclick="dbDesignTemplate('shop')">
+          <div class="icon">🛒</div>
+          <div class="name">商品订单系统</div>
+          <div class="desc">商品+客户+订单</div>
+        </div>
+        <div class="scenario-card" onclick="dbDesignTemplate('employee')">
+          <div class="icon">💼</div>
+          <div class="name">员工薪资系统</div>
+          <div class="desc">部门+员工+薪资</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL工具箱 -->
+    <div class="card">
+      <div class="card-title">SQL工具箱</div>
+      <div class="func-grid">
+        <div class="func-item" onclick="dbApi('competition-templates')">
+          <div class="icon">📚</div>
+          <div class="name">竞赛SQL题库</div>
+        </div>
+        <div class="func-item" onclick="dbApi('syntax')">
+          <div class="icon">📝</div>
+          <div class="name">SQL语法速查</div>
+        </div>
+        <div class="func-item" onclick="dbApi('student-db')">
+          <div class="icon">📊</div>
+          <div class="name">示例数据库</div>
+        </div>
+        <div class="func-item" onclick="dbApi('security-check')">
+          <div class="icon">🔍</div>
+          <div class="name">MySQL安全检查</div>
+        </div>
+        <div class="func-item" onclick="dbApi('security-check','redis')">
+          <div class="icon">🔴</div>
+          <div class="name">Redis安全检查</div>
+        </div>
+        <div class="func-item" onclick="dbJoinQuery()">
+          <div class="icon">🔗</div>
+          <div class="name">JOIN查询生成</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL编辑器与生成器 -->
+    <div class="card">
+      <div class="card-title">SQL编辑器与生成器</div>
+
+      <!-- SQL纠错 -->
+      <div style="margin-bottom:20px">
+        <div style="font-weight:600;font-size:14px;margin-bottom:8px;color:var(--text)">SQL语法纠错</div>
+        <textarea id="sql-editor" placeholder="在此输入SQL语句进行语法检查...&#10;例如: SELECT * FROM Students WHERE Age > 20 ORDER BY Name;" style="min-height:120px;font-family:monospace"></textarea>
+        <div class="btn-group" style="margin-top:8px">
+          <button class="btn btn-primary" onclick="validateSql()">语法纠错</button>
+          <button class="btn btn-primary" onclick="webApi('sqli-guide')">SQL注入指南</button>
+          <button class="btn btn-primary" onclick="webApi('sqli-bypass')">WAF绕过技巧</button>
+          <button class="btn btn-primary" onclick="webApi('db-hardening')">数据库加固指南</button>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:16px">
+        <div style="font-weight:600;font-size:14px;margin-bottom:8px;color:var(--text)">SQL语句生成器</div>
+        <div class="form-row">
+          <select id="sql-type" style="width:120px">
+            <option value="select">SELECT</option>
+            <option value="insert">INSERT</option>
+            <option value="update">UPDATE</option>
+          </select>
+          <input type="text" id="sql-table" placeholder="表名">
+        </div>
+        <div class="form-row">
+          <input type="text" id="sql-columns" placeholder="列名(如 id,name,age 或 * )">
+          <input type="text" id="sql-where" placeholder="WHERE条件(如 id=1)">
+        </div>
+        <div class="form-group">
+          <input type="text" id="sql-order" placeholder="ORDER BY(可选)">
+        </div>
+        <button class="btn btn-primary" onclick="generateSql()">生成SQL</button>
+      </div>
+    </div>
+
+    <div class="loading" id="dbsec-loading"><div class="spinner"></div> 生成中...</div>
+    <div class="error-msg" id="dbsec-error"></div>
+    <div class="result-area" id="dbsec-result"></div>
+  </div>
+
+  <!-- 服务器配置 -->
+  <div class="tab-content hidden" id="tab-server">
+    <!-- 竞赛一键场景 -->
+    <div class="card">
+      <div class="card-title">竞赛一键场景 - 点击卡片直接生成命令</div>
+      <div class="scenario-grid">
+        <div class="scenario-card" onclick="serverCompetition(1)">
+          <div class="icon">👤</div>
+          <div class="name">场景1</div>
+          <div class="desc">用户创建+权限配置</div>
+        </div>
+        <div class="scenario-card" onclick="serverCompetition(2)">
+          <div class="icon">🔒</div>
+          <div class="name">场景2</div>
+          <div class="desc">SSH安全加固配置</div>
+        </div>
+        <div class="scenario-card" onclick="serverCompetition(3)">
+          <div class="icon">⚙️</div>
+          <div class="name">场景3</div>
+          <div class="desc">服务管理+端口检查</div>
+        </div>
+        <div class="scenario-card" onclick="serverCompetition(4)">
+          <div class="icon">📁</div>
+          <div class="name">场景4</div>
+          <div class="desc">文件权限+SUID清理</div>
+        </div>
+        <div class="scenario-card" onclick="serverCompetition(5)">
+          <div class="icon">🛡️</div>
+          <div class="name">场景5</div>
+          <div class="desc">综合安全加固</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 常用操作 -->
+    <div class="card">
+      <div class="card-title">常用操作 - 选择功能开始配置</div>
+      <div class="func-grid">
+        <div class="func-item" onclick="showServerPanel('user')">
+          <div class="icon">👤</div>
+          <div class="name">用户管理</div>
+        </div>
+        <div class="func-item" onclick="showServerPanel('ssh')">
+          <div class="icon">🔒</div>
+          <div class="name">SSH加固</div>
+        </div>
+        <div class="func-item" onclick="showServerPanel('service')">
+          <div class="icon">⚙️</div>
+          <div class="name">服务管理</div>
+        </div>
+        <div class="func-item" onclick="showServerPanel('permissions')">
+          <div class="icon">📁</div>
+          <div class="name">权限管理</div>
+        </div>
+        <div class="func-item" onclick="showServerPanel('network')">
+          <div class="icon">🌐</div>
+          <div class="name">网络配置</div>
+        </div>
+        <div class="func-item" onclick="showServerPanel('log')">
+          <div class="icon">📊</div>
+          <div class="name">日志审计</div>
+        </div>
+        <div class="func-item" onclick="showServerPanel('hardening')">
+          <div class="icon">🛡️</div>
+          <div class="name">系统加固</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 动态输入面板 -->
+    <div id="server-panel" class="hidden">
+      <!-- 用户管理 -->
+      <div class="card" id="server-panel-user" style="display:none">
+        <div class="panel-title"><span class="icon">👤</span> 用户与组管理</div>
+        <div class="form-group">
+          <label>操作类型</label>
+          <select id="srv-user-action">
+            <option value="create">创建新用户</option>
+            <option value="create-group">创建用户并加入组</option>
+            <option value="delete">删除用户</option>
+            <option value="lock">锁定账户（禁止登录）</option>
+            <option value="unlock">解锁账户</option>
+            <option value="password-policy">设置密码策略</option>
+            <option value="list">查看用户详细信息</option>
+            <option value="list-all">列出所有用户</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="srv-username" placeholder="如: newuser">
+            <div class="input-hint">要创建/操作的Linux用户名</div>
+          </div>
+          <div class="form-group">
+            <label>组名</label>
+            <input type="text" id="srv-groupname" placeholder="如: devteam">
+            <div class="input-hint">用户要加入的用户组名</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>密码</label>
+            <input type="text" id="srv-password" placeholder="如: P@ssw0rd123">
+            <div class="input-hint">建议包含大小写字母+数字+特殊字符</div>
+          </div>
+          <div class="form-group">
+            <label>登录Shell</label>
+            <select id="srv-shell">
+              <option value="/bin/bash">/bin/bash（默认）</option>
+              <option value="/bin/sh">/bin/sh</option>
+              <option value="/sbin/nologin">/sbin/nologin（禁止登录）</option>
+              <option value="/bin/zsh">/bin/zsh</option>
+            </select>
+            <div class="input-hint">用户登录后使用的Shell环境</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="serverApi('user')" style="margin-top:12px">生成命令</button>
+      </div>
+
+      <!-- SSH加固 -->
+      <div class="card" id="server-panel-ssh" style="display:none">
+        <div class="panel-title"><span class="icon">🔒</span> SSH安全加固</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>SSH端口</label>
+            <input type="number" id="srv-ssh-port" placeholder="22" value="22">
+            <div class="input-hint">修改默认端口可减少扫描攻击</div>
+          </div>
+          <div class="form-group">
+            <label>允许root登录</label>
+            <select id="srv-ssh-root">
+              <option value="no">禁止（推荐）</option>
+              <option value="yes">允许</option>
+            </select>
+            <div class="input-hint">生产环境建议禁止root直接登录</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>密码认证</label>
+            <select id="srv-ssh-password">
+              <option value="no">禁用（仅密钥登录，推荐）</option>
+              <option value="yes">允许密码登录</option>
+            </select>
+            <div class="input-hint">禁用密码后需提前配置好密钥</div>
+          </div>
+          <div class="form-group">
+            <label>允许登录的用户</label>
+            <input type="text" id="srv-ssh-users" placeholder="如: admin,deploy（逗号分隔）">
+            <div class="input-hint">留空表示不限制</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>超时时间（秒）</label>
+            <input type="number" id="srv-ssh-interval" placeholder="300" value="300">
+            <div class="input-hint">无操作超时自动断开连接</div>
+          </div>
+          <div class="form-group">
+            <label>超时检测次数</label>
+            <input type="number" id="srv-ssh-countmax" placeholder="3" value="3">
+            <div class="input-hint">超过次数未响应则断开</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="serverApi('ssh')" style="margin-top:12px">生成SSH配置</button>
+      </div>
+
+      <!-- 服务管理 -->
+      <div class="card" id="server-panel-service" style="display:none">
+        <div class="panel-title"><span class="icon">⚙️</span> 服务管理</div>
+        <div class="form-group">
+          <label>操作类型</label>
+          <select id="srv-svc-action">
+            <option value="status">查看服务运行状态</option>
+            <option value="enable">设置开机自启动</option>
+            <option value="disable">取消开机自启动</option>
+            <option value="restart">重启服务</option>
+            <option value="list-all">列出所有服务</option>
+            <option value="list-ports">查看所有监听端口</option>
+            <option value="disable-dangerous">一键禁用危险服务</option>
+          </select>
+          <div class="input-hint">选择要执行的管理操作</div>
+        </div>
+        <div class="form-group">
+          <label>服务名称</label>
+          <input type="text" id="srv-svc-name" placeholder="如: sshd, nginx, mysql, firewalld">
+          <div class="input-hint">系统服务名称，可用 systemctl list-unit-files 查看</div>
+        </div>
+        <div style="margin-top:12px;padding:12px;background:var(--code-bg);border-radius:6px;font-size:13px">
+          <strong>常用服务：</strong>
+          <span style="margin-left:8px">
+            <button class="btn btn-sm" onclick="document.getElementById('srv-svc-name').value='sshd'" style="margin:2px">sshd</button>
+            <button class="btn btn-sm" onclick="document.getElementById('srv-svc-name').value='firewalld'" style="margin:2px">firewalld</button>
+            <button class="btn btn-sm" onclick="document.getElementById('srv-svc-name').value='nginx'" style="margin:2px">nginx</button>
+            <button class="btn btn-sm" onclick="document.getElementById('srv-svc-name').value='mysqld'" style="margin:2px">mysqld</button>
+            <button class="btn btn-sm" onclick="document.getElementById('srv-svc-name').value='httpd'" style="margin:2px">httpd</button>
+          </span>
+        </div>
+        <button class="btn btn-primary" onclick="serverApi('service')" style="margin-top:12px">生成命令</button>
+      </div>
+
+      <!-- 文件权限 -->
+      <div class="card" id="server-panel-permissions" style="display:none">
+        <div class="panel-title"><span class="icon">📁</span> 文件权限管理</div>
+        <div class="form-group">
+          <label>操作类型</label>
+          <select id="srv-perm-action">
+            <option value="chmod">修改文件权限</option>
+            <option value="chown">修改文件所有者</option>
+            <option value="find-suid">查找SUID文件（安全隐患）</option>
+            <option value="find-sgid">查找SGID文件</option>
+            <option value="find-world-writable">查找全局可写文件</option>
+            <option value="acl-set">设置ACL权限</option>
+            <option value="acl-show">查看ACL权限</option>
+            <option value="umask">设置默认权限掩码</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>文件路径</label>
+            <input type="text" id="srv-perm-path" placeholder="如: /var/www/html">
+            <div class="input-hint">要操作的文件或目录路径</div>
+          </div>
+          <div class="form-group">
+            <label>权限值</label>
+            <input type="text" id="srv-perm-mode" placeholder="如: 755, 600, 644">
+            <div class="input-hint">数字权限（755=rwxr-xr-x）</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>用户:组</label>
+            <input type="text" id="srv-perm-user" placeholder="如: nginx:nginx">
+            <div class="input-hint">所有者用户名和组名</div>
+          </div>
+          <div class="form-group">
+            <label>ACL权限</label>
+            <input type="text" id="srv-perm-acl" placeholder="如: rwx, rx">
+            <div class="input-hint">ACL读写执行权限</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding:12px;background:var(--code-bg);border-radius:6px;font-size:13px">
+          <strong>常用权限：</strong>
+          <span style="margin-left:8px">
+            <button class="btn btn-sm" onclick="document.getElementById('srv-perm-mode').value='755'" style="margin:2px">755</button>
+            <button class="btn btn-sm" onclick="document.getElementById('srv-perm-mode').value='644'" style="margin:2px">644</button>
+            <button class="btn btn-sm" onclick="document.getElementById('srv-perm-mode').value='600'" style="margin:2px">600</button>
+            <button class="btn btn-sm" onclick="document.getElementById('srv-perm-mode').value='700'" style="margin:2px">700</button>
+          </span>
+        </div>
+        <button class="btn btn-primary" onclick="serverApi('permissions')" style="margin-top:12px">生成命令</button>
+      </div>
+
+      <!-- 网络配置 -->
+      <div class="card" id="server-panel-network" style="display:none">
+        <div class="panel-title"><span class="icon">🌐</span> 网络配置</div>
+        <div class="form-group">
+          <label>操作类型</label>
+          <select id="srv-net-action">
+            <option value="show">查看网络信息</option>
+            <option value="static-ip">配置静态IP地址</option>
+            <option value="dns">配置DNS服务器</option>
+            <option value="hosts">配置hosts映射</option>
+            <option value="hostname">设置主机名</option>
+            <option value="route-add">添加路由规则</option>
+            <option value="route-show">查看路由表</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IP地址</label>
+            <input type="text" id="srv-net-ip" placeholder="如: 192.168.1.100">
+            <div class="input-hint">要配置的IP地址</div>
+          </div>
+          <div class="form-group">
+            <label>子网掩码</label>
+            <input type="text" id="srv-net-mask" placeholder="如: 24 或 255.255.255.0">
+            <div class="input-hint">CIDR格式或点分十进制</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>网关地址</label>
+            <input type="text" id="srv-net-gw" placeholder="如: 192.168.1.1">
+            <div class="input-hint">默认网关地址</div>
+          </div>
+          <div class="form-group">
+            <label>DNS服务器</label>
+            <input type="text" id="srv-net-dns" placeholder="如: 8.8.8.8, 114.114.114.114">
+            <div class="input-hint">多个DNS用逗号分隔</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>主机名</label>
+            <input type="text" id="srv-net-hostname" placeholder="如: web-server-01">
+            <div class="input-hint">服务器主机名</div>
+          </div>
+          <div class="form-group">
+            <label>网络连接名</label>
+            <input type="text" id="srv-net-connection" placeholder="如: eth0, ens33" value="eth0">
+            <div class="input-hint">网卡连接名称，用 nmcli con show 查看</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="serverApi('network')" style="margin-top:12px">生成命令</button>
+      </div>
+
+      <!-- 日志审计 -->
+      <div class="card" id="server-panel-log" style="display:none">
+        <div class="panel-title"><span class="icon">📊</span> 日志审计配置</div>
+        <div class="form-group">
+          <label>操作类型</label>
+          <select id="srv-log-action">
+            <option value="system-log">查看系统日志</option>
+            <option value="auth-log">查看认证/登录日志</option>
+            <option value="remote-log">配置远程日志服务器</option>
+            <option value="audit-user">审计用户操作记录</option>
+            <option value="log-rotate">配置日志轮转策略</option>
+          </select>
+          <div class="input-hint">选择要查看或配置的日志功能</div>
+        </div>
+        <div class="form-group">
+          <label>远程日志服务器IP</label>
+          <input type="text" id="srv-log-remote" placeholder="如: 10.0.0.100">
+          <div class="input-hint">仅"配置远程日志"时需要填写</div>
+        </div>
+        <button class="btn btn-primary" onclick="serverApi('log')" style="margin-top:12px">生成命令</button>
+      </div>
+
+      <!-- 系统加固 -->
+      <div class="card" id="server-panel-hardening" style="display:none">
+        <div class="panel-title"><span class="icon">🛡️</span> 系统安全加固</div>
+        <div class="form-group">
+          <label>加固类型</label>
+          <select id="srv-hard-action">
+            <option value="selinux">SELinux配置</option>
+            <option value="hosts-allow-deny">hosts访问控制（黑白名单）</option>
+            <option value="banner">设置登录警告Banner</option>
+            <option value="cron-restrict">限制cron定时任务使用</option>
+            <option value="sysctl">内核参数安全加固</option>
+            <option value="check-open-ports">检查开放端口</option>
+            <option value="password-policy-global">全局密码策略</option>
+          </select>
+          <div class="input-hint">选择要执行的安全加固措施</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Banner文本</label>
+            <input type="text" id="srv-hard-banner" placeholder="如: Unauthorized access prohibited!">
+            <div class="input-hint">登录前显示的警告信息</div>
+          </div>
+          <div class="form-group">
+            <label>允许访问的IP</label>
+            <input type="text" id="srv-hard-allow-ip" placeholder="如: 192.168.1.0/24">
+            <div class="input-hint">用于hosts.allow白名单</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="serverApi('hardening')" style="margin-top:12px">生成命令</button>
+      </div>
+    </div>
+
+    <div class="loading" id="server-loading"><div class="spinner"></div> 生成中...</div>
+    <div class="error-msg" id="server-error"></div>
+    <div class="result-area" id="server-result"></div>
+  </div>
+
+</div>
+
+<script>
+const API = '';
+
+// Tab switching
+// Track which button was clicked so results render near it
+let _activeBtn = null;
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn, .scenario-card, .func-item');
+  if (btn) _activeBtn = btn;
+});
+
+// Merged tab groups: clicking a parent tab shows multiple content divs
+const TAB_GROUPS = {
+  'auto': ['auto'],
+  'reverse': ['reverse', 'crypto', 'stego'],
+  'data': ['data', 'dataclean'],
+  'traffic': ['traffic', 'log'],
+  'server': ['server', 'network']
+};
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  const group = TAB_GROUPS[name] || [name];
+  group.forEach(tabId => {
+    const el = document.getElementById('tab-' + tabId);
+    if (el) el.classList.remove('hidden');
+  });
+  document.querySelector(`.tab[data-tab="${name}"]`).classList.add('active');
+}
+
+// File selection display
+function onFileSelected(inputId, files) {
+  if (files.length > 0) {
+    const file = files[0];
+    const info = document.getElementById(inputId + '-info');
+    if (info) {
+      info.querySelector('.name').textContent = file.name;
+      info.querySelector('.size').textContent = formatFileSize(file.size);
+      info.classList.add('show');
+    }
+  }
+}
+
+function clearFile(inputId) {
+  const input = document.getElementById(inputId);
+  input.value = '';
+  const info = document.getElementById(inputId + '-info');
+  if (info) info.classList.remove('show');
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+// Drag and drop
+function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
+function handleDragLeave(e) { e.currentTarget.classList.remove('dragover'); }
+function handleDrop(e, inputId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('dragover');
+  if (e.dataTransfer.files.length > 0) {
+    const input = document.getElementById(inputId);
+    input.files = e.dataTransfer.files;
+    onFileSelected(inputId, input.files);
+  }
+}
+
+// Show/hide loading and errors
+function showLoading(tab) { const el = document.getElementById(tab + '-loading'); if (el) el.classList.add('show'); }
+function hideLoading(tab) { const el = document.getElementById(tab + '-loading'); if (el) el.classList.remove('show'); }
+function showError(tab, msg) { const el = document.getElementById(tab + '-error'); if (el) { el.textContent = msg; el.style.display = 'block'; } }
+function hideError(tab) { const el = document.getElementById(tab + '-error'); if (el) el.style.display = 'none'; }
+
+// Highlight flags in text
+function highlightFlags(text) {
+  if (typeof text !== 'string') return escapeHtml(JSON.stringify(text, null, 2));
+  return escapeHtml(text).replace(/(flag|ctf|key)\{[^}]+\}/gi, m => `<span class="flag">${m}</span>`);
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Smart render: auto-detect data type and render beautifully
+function renderResult(containerId, data, title) {
+  // Find the best container: after the triggering button's parent card, or fallback to fixed container
+  let container;
+  if (_activeBtn) {
+    const card = _activeBtn.closest('.card');
+    if (card) {
+      // Look for or create a result container right after this card
+      let inlineResult = card.nextElementSibling;
+      if (!inlineResult || !inlineResult.classList.contains('inline-result')) {
+        inlineResult = document.createElement('div');
+        inlineResult.className = 'inline-result';
+        card.parentNode.insertBefore(inlineResult, card.nextSibling);
+      }
+      container = inlineResult;
+      _activeBtn = null;
+    }
+  }
+  if (!container) container = document.getElementById(containerId);
+  if (!container) return;
+
+  const block = document.createElement('div');
+  block.className = 'result-block';
+
+  const header = document.createElement('div');
+  header.className = 'result-header';
+  header.innerHTML = `<h4>${title || '结果'}</h4><div><button class="copy-btn" onclick="copyText(this)">复制</button></div>`;
+
+  const body = document.createElement('div');
+  body.className = 'result-body';
+  body.style.padding = '16px';
+
+  if (typeof data === 'string') {
+    body.innerHTML = renderString(data);
+  } else {
+    body.innerHTML = renderSmart(data);
+  }
+
+  header.addEventListener('click', (e) => {
+    if (e.target.classList.contains('copy-btn')) return;
+    body.classList.toggle('collapsed');
+  });
+
+  block.appendChild(header);
+  block.appendChild(body);
+  container.innerHTML = '';
+  container.appendChild(block);
+}
+
+function renderString(text) {
+  // Detect SQL
+  if (/^\s*(CREATE|INSERT|SELECT|UPDATE|DELETE|DROP|ALTER)\s/i.test(text)) {
+    return `<pre style="background:var(--code-bg);padding:12px;border-radius:6px;overflow-x:auto;font-size:13px">${highlightFlags(text)}</pre>`;
+  }
+  return `<div style="white-space:pre-wrap;font-size:14px">${highlightFlags(text)}</div>`;
+}
+
+function renderSmart(data) {
+  if (!data) return '<span style="color:var(--text-secondary)">无数据</span>';
+
+  // Handle arrays
+  if (Array.isArray(data)) {
+    if (data.length === 0) return '<span style="color:var(--text-secondary)">空列表</span>';
+    // If array of objects -> table
+    if (typeof data[0] === 'object' && data[0] !== null) {
+      return renderTable(data);
+    }
+    // Simple array -> list
+    return '<ul style="margin:0;padding-left:20px">' + data.map(item =>
+      `<li style="margin:4px 0">${renderValue(item)}</li>`
+    ).join('') + '</ul>';
+  }
+
+  if (typeof data !== 'object') return escapeHtml(String(data));
+
+  let html = '';
+
+  // Special handlers for known data shapes
+
+  // SQL code field
+  if (data.sql) {
+    html += renderSection('生成的SQL', `<pre style="background:var(--code-bg);padding:12px;border-radius:6px;overflow-x:auto;font-size:13px;line-height:1.5">${highlightFlags(data.sql)}</pre>`);
+    // Show remaining fields
+    const rest = {...data}; delete rest.sql; delete rest.success;
+    if (Object.keys(rest).length > 0) html += renderObject(rest);
+    return html;
+  }
+
+  // Create SQL (student db etc)
+  if (data.create_sql) {
+    html += renderSection('建表SQL', `<pre style="background:var(--code-bg);padding:12px;border-radius:6px;overflow-x:auto;font-size:13px;line-height:1.5">${highlightFlags(data.create_sql)}</pre>`);
+    if (data.common_queries) {
+      let qhtml = '';
+      for (const [name, sql] of Object.entries(data.common_queries)) {
+        qhtml += `<div style="margin-bottom:12px"><div style="font-weight:600;margin-bottom:4px;color:var(--primary)">${escapeHtml(name)}</div>`;
+        qhtml += `<pre style="background:var(--code-bg);padding:10px;border-radius:6px;overflow-x:auto;font-size:12px">${highlightFlags(sql)}</pre></div>`;
+      }
+      html += renderSection('常用查询', qhtml);
+    }
+    return html;
+  }
+
+  // Competition templates
+  if (data.templates) {
+    for (const cat of data.templates) {
+      let catHtml = '';
+      for (const item of cat.items) {
+        catHtml += `<div style="margin-bottom:16px;padding:12px;background:var(--bg);border-radius:6px;border-left:3px solid var(--primary)">`;
+        catHtml += `<div style="font-weight:600;margin-bottom:4px">${escapeHtml(item.title)}</div>`;
+        if (item.desc) catHtml += `<div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">${escapeHtml(item.desc)}</div>`;
+        catHtml += `<pre style="background:var(--code-bg);padding:10px;border-radius:4px;overflow-x:auto;font-size:12px;line-height:1.5">${highlightFlags(item.sql)}</pre>`;
+        if (item.知识点) catHtml += `<div style="margin-top:6px;font-size:12px;color:var(--primary)">${escapeHtml(item.知识点)}</div>`;
+        catHtml += '</div>';
+      }
+      html += renderSection(cat.category, catHtml);
+    }
+    return html;
+  }
+
+  // DB design template
+  if (data.entities) {
+    // Summary cards
+    html += '<div class="summary-card">';
+    if (data.name) html += `<div class="summary-item"><div class="label">系统名称</div><div class="value" style="font-size:16px">${escapeHtml(data.name)}</div></div>`;
+    if (data.description) html += `<div class="summary-item"><div class="label">说明</div><div class="value" style="font-size:14px">${escapeHtml(data.description)}</div></div>`;
+    html += '</div>';
+
+    // Entities
+    let entHtml = '';
+    for (const ent of data.entities) {
+      entHtml += `<div style="margin-bottom:8px"><span style="font-weight:600;color:var(--primary)">${escapeHtml(ent.name)}</span>`;
+      entHtml += `<span style="color:var(--text-secondary);margin-left:8px">${escapeHtml(ent.desc)}</span>`;
+      entHtml += `<div style="font-size:12px;color:var(--text-secondary);margin-left:16px">${ent.attrs.map(a => escapeHtml(a)).join(' | ')}</div></div>`;
+    }
+    html += renderSection('实体模型', entHtml);
+    if (data.relationships) html += renderSection('关系', `<div style="font-size:14px">${escapeHtml(data.relationships)}</div>`);
+
+    // SQL and queries
+    if (data.create_sql) html += renderSection('建表SQL', `<pre style="background:var(--code-bg);padding:12px;border-radius:6px;overflow-x:auto;font-size:13px;line-height:1.5">${highlightFlags(data.create_sql)}</pre>`);
+    if (data.common_queries) {
+      let qhtml = '';
+      for (const [name, sql] of Object.entries(data.common_queries)) {
+        qhtml += `<div style="margin-bottom:12px"><div style="font-weight:600;margin-bottom:4px;color:var(--primary)">${escapeHtml(name)}</div>`;
+        qhtml += `<pre style="background:var(--code-bg);padding:10px;border-radius:4px;overflow-x:auto;font-size:12px">${highlightFlags(sql)}</pre></div>`;
+      }
+      html += renderSection('常用查询', qhtml);
+    }
+    return html;
+  }
+
+  // Single command (pentest nmap, reverse shell)
+  if (data.command && typeof data.command === 'string') {
+    // Title card
+    if (data.scan_type || data.shell_type) {
+      html += '<div style="padding:14px 16px;background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:8px;color:#fff;margin-bottom:16px">';
+      html += `<div style="font-size:16px;font-weight:600;margin-bottom:4px">${escapeHtml(data.scan_type || data.shell_type || '')}</div>`;
+      html += '</div>';
+    }
+
+    // Command - styled as terminal
+    html += '<div style="margin-bottom:16px">';
+    html += '<div style="font-weight:600;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="color:var(--primary)">$</span> 生成的命令</div>';
+    html += '<div style="background:#1e293b;border-radius:8px;overflow:hidden">';
+    html += '<div style="background:#334155;padding:8px 12px;display:flex;align-items:center;gap:6px">';
+    html += '<span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span>';
+    html += '<span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block"></span>';
+    html += '<span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block"></span>';
+    html += '<span style="color:#94a3b8;font-size:12px;margin-left:8px">Terminal</span>';
+    html += '</div>';
+    html += `<div style="padding:14px;font-family:monospace;font-size:13px;line-height:1.8;color:#f8fafc;user-select:all">${escapeHtml(data.command)}</div>`;
+    html += '</div></div>';
+    html += '<div style="text-align:right;margin-top:6px"><button class="btn btn-sm" onclick="copySingleCommand(this)" style="font-size:12px">复制命令</button></div>';
+    html += '</div>';
+
+    // Listener
+    if (data.listener) {
+      html += renderSection('监听端命令', `<div style="background:#1e293b;border-radius:6px;padding:10px;font-family:monospace;font-size:13px;color:#10b981;user-select:all">${escapeHtml(data.listener)}</div>`);
+    }
+
+    // All types
+    if (data.all_types) {
+      html += renderSection('可用类型', `<div style="display:flex;flex-wrap:wrap;gap:6px">${data.all_types.map(t => `<span style="background:var(--code-bg);padding:4px 10px;border-radius:4px;font-size:12px">${escapeHtml(t)}</span>`).join('')}</div>`);
+    }
+
+    // Tip
+    if (data.tip) {
+      html += `<div style="padding:8px 12px;background:#fffbeb;border-left:3px solid var(--warning);margin-bottom:6px;border-radius:0 4px 4px 0;font-size:13px;color:#92400e">${escapeHtml(data.tip)}</div>`;
+    }
+
+    return html;
+  }
+
+  // Multi-category commands (forensics volatility)
+  if (data.commands && typeof data.commands === 'object' && !Array.isArray(data.commands)) {
+    for (const [catName, cmds] of Object.entries(data.commands)) {
+      if (!Array.isArray(cmds)) continue;
+      let catHtml = '<div style="background:#1e293b;border-radius:6px;overflow:hidden;padding:10px;font-family:monospace;font-size:12px">';
+      cmds.forEach(c => {
+        const cmd = c.cmd || c.command || c;
+        const desc = c.desc || '';
+        catHtml += '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #334155">';
+        if (desc) catHtml += `<div style="color:#10b981;margin-bottom:2px">${escapeHtml(desc)}</div>`;
+        catHtml += `<div style="color:#f8fafc;word-break:break-all;user-select:all">${escapeHtml(typeof cmd === 'string' ? cmd : JSON.stringify(cmd))}</div>`;
+        catHtml += '</div>';
+      });
+      catHtml += '</div>';
+      html += renderSection(catName, catHtml);
+    }
+    return html;
+  }
+
+  // Single array of commands/rules (server config, firewall, pentest, forensics)
+  if ((data.commands || data.rules) && Array.isArray(data.commands || data.rules)) {
+    const cmds = data.commands || data.rules;
+    // Title card
+    if (data.name || data.description) {
+      html += '<div style="padding:14px 16px;background:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);border-radius:8px;color:#fff;margin-bottom:16px">';
+      if (data.name) html += `<div style="font-size:16px;font-weight:600;margin-bottom:4px">${escapeHtml(data.name)}</div>`;
+      if (data.description) html += `<div style="font-size:13px;opacity:.9">${escapeHtml(data.description)}</div>`;
+      if (data.example) html += `<div style="font-size:12px;opacity:.75;margin-top:4px">示例: ${escapeHtml(data.example)}</div>`;
+      html += '</div>';
+    }
+
+    // Commands - styled as terminal
+    html += '<div style="margin-bottom:16px">';
+    html += '<div style="font-weight:600;font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px"><span style="color:var(--primary)">$</span> 生成的命令</div>';
+    html += '<div style="background:#1e293b;border-radius:8px;overflow:hidden">';
+    html += '<div style="background:#334155;padding:8px 12px;display:flex;align-items:center;gap:6px">';
+    html += '<span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span>';
+    html += '<span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block"></span>';
+    html += '<span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block"></span>';
+    html += '<span style="color:#94a3b8;font-size:12px;margin-left:8px">Terminal</span>';
+    html += '</div>';
+    html += '<div style="padding:14px;font-family:monospace;font-size:13px;line-height:1.8">';
+    cmds.forEach((cmd, i) => {
+      const isComment = cmd.startsWith('#');
+      if (isComment) {
+        html += `<div style="color:#64748b;font-style:italic">${escapeHtml(cmd)}</div>`;
+      } else {
+        html += `<div style="color:#e2e8f0"><span style="color:#10b981">$</span> <span style="color:#f8fafc">${escapeHtml(cmd)}</span></div>`;
+      }
+    });
+    html += '</div></div>';
+    // Copy button for commands
+    html += '<div style="text-align:right;margin-top:6px"><button class="btn btn-sm" onclick="copyCommands(this)" style="font-size:12px">复制所有命令</button></div>';
+    html += '</div>';
+
+    // Config content (SSH config etc)
+    if (data.config_content) {
+      html += renderSection('完整配置文件', `<div style="background:#1e293b;border-radius:8px;overflow:hidden"><div style="background:#334155;padding:8px 12px"><span style="color:#94a3b8;font-size:12px">配置文件</span></div><pre style="padding:14px;color:#e2e8f0;font-family:monospace;font-size:12px;line-height:1.6;overflow-x:auto;margin:0">${escapeHtml(data.config_content)}</pre></div>`);
+    }
+
+    // Tips
+    if (data.tips && data.tips.length > 0) {
+      let tipsHtml = '';
+      data.tips.forEach(tip => {
+        tipsHtml += `<div style="padding:8px 12px;background:#fffbeb;border-left:3px solid var(--warning);margin-bottom:6px;border-radius:0 4px 4px 0;font-size:13px;color:#92400e">${escapeHtml(tip)}</div>`;
+      });
+      html += renderSection('注意事项', tipsHtml);
+    }
+
+    // Variables
+    if (data.variables && Object.keys(data.variables).length > 0) {
+      let varHtml = '<div style="display:flex;flex-wrap:wrap;gap:8px">';
+      for (const [k, v] of Object.entries(data.variables)) {
+        varHtml += `<div style="background:var(--code-bg);padding:6px 12px;border-radius:6px;font-size:13px"><span style="color:var(--text-secondary)">${escapeHtml(k)}：</span><span style="font-weight:600;color:var(--primary)">${escapeHtml(v)}</span></div>`;
+      }
+      varHtml += '</div>';
+      html += renderSection('可替换变量', varHtml);
+    }
+
+    return html;
+  }
+
+  // Payloads (web security)
+  if (data.payloads && Array.isArray(data.payloads)) {
+    // Title card
+    if (data.name) {
+      html += '<div style="padding:14px 16px;background:linear-gradient(135deg,#8b5cf6 0%,#7c3aed 100%);border-radius:8px;color:#fff;margin-bottom:16px">';
+      html += `<div style="font-size:16px;font-weight:600;margin-bottom:4px">${escapeHtml(data.name)}</div>`;
+      if (data.适用) html += `<div style="font-size:13px;opacity:.9">适用: ${escapeHtml(data.适用)}</div>`;
+      html += '</div>';
+    }
+
+    // Payloads table
+    html += '<div style="margin-bottom:16px">';
+    html += '<div style="font-weight:600;font-size:14px;margin-bottom:8px;color:var(--text)">Payload 列表</div>';
+    html += '<div style="background:#1e293b;border-radius:8px;overflow:hidden">';
+    html += '<div style="background:#334155;padding:8px 12px;display:flex;align-items:center;gap:6px">';
+    html += '<span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span>';
+    html += '<span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block"></span>';
+    html += '<span style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block"></span>';
+    html += '<span style="color:#94a3b8;font-size:12px;margin-left:8px">Payloads</span>';
+    html += '</div>';
+    html += '<div style="padding:14px;font-family:monospace;font-size:12px;line-height:1.6">';
+    data.payloads.forEach((p, i) => {
+      html += '<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #334155">';
+      html += `<div style="color:#10b981;margin-bottom:4px">${escapeHtml(p.desc || '')}</div>`;
+      html += `<div style="color:#f8fafc;word-break:break-all;user-select:all">${escapeHtml(p.payload)}</div>`;
+      html += '</div>';
+    });
+    html += '</div></div>';
+    // Copy button
+    html += '<div style="text-align:right;margin-top:6px"><button class="btn btn-sm" onclick="copyPayloads(this)" style="font-size:12px">复制所有Payload</button></div>';
+    html += '</div>';
+
+    // Other fields
+    const rest = {...data}; delete rest.payloads; delete rest.success; delete rest.name;
+    delete rest.适用; delete rest.说明;
+    for (const [key, val] of Object.entries(rest)) {
+      if (typeof val === 'string' && val.length > 50) {
+        html += renderSection(key, `<pre style="background:var(--code-bg);padding:12px;border-radius:6px;font-size:12px;white-space:pre-wrap;overflow-x:auto">${escapeHtml(val)}</pre>`);
+      }
+    }
+
+    return html;
+  }
+
+  // Multi-category payloads (web sqli_payloads, sqli_complete_guide)
+  if (data.guides) {
+    // sqli_complete_guide format
+    for (const [key, guide] of Object.entries(data.guides)) {
+      if (typeof guide !== 'object' || !guide.payloads) continue;
+      let catHtml = '';
+      if (guide.适用) catHtml += `<div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">适用: ${escapeHtml(guide.适用)}</div>`;
+      if (guide.步骤) {
+        catHtml += '<div style="margin-bottom:8px">';
+        guide.步骤.forEach(step => {
+          catHtml += `<div style="font-size:13px;padding:4px 0;color:var(--text)">${escapeHtml(step)}</div>`;
+        });
+        catHtml += '</div>';
+      }
+      catHtml += '<div style="background:#1e293b;border-radius:6px;overflow:hidden;padding:10px;font-family:monospace;font-size:12px">';
+      guide.payloads.forEach(p => {
+        catHtml += '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #334155">';
+        catHtml += `<div style="color:#10b981;margin-bottom:2px">${escapeHtml(p.desc || '')}</div>`;
+        catHtml += `<div style="color:#f8fafc;word-break:break-all;user-select:all">${escapeHtml(p.payload)}</div>`;
+        catHtml += '</div>';
+      });
+      catHtml += '</div>';
+      html += renderSection(guide.name || key, catHtml);
+    }
+    return html;
+  }
+
+  // Check if object has multiple arrays of payload-like objects (sqli_payloads format)
+  const payloadKeys = Object.keys(data).filter(k => {
+    return Array.isArray(data[k]) && data[k].length > 0 && typeof data[k][0] === 'object' && data[k][0].payload;
+  });
+  if (payloadKeys.length > 0) {
+    const categoryNames = {
+      'basic': '基础注入', 'mysql': 'MySQL专用', 'mssql': 'MSSQL专用',
+      'oracle': 'Oracle专用', 'postgresql': 'PostgreSQL专用', 'sqlite': 'SQLite专用'
+    };
+    for (const key of payloadKeys) {
+      const items = data[key];
+      let catHtml = '<div style="background:#1e293b;border-radius:6px;overflow:hidden;padding:10px;font-family:monospace;font-size:12px">';
+      items.forEach(p => {
+        catHtml += '<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #334155">';
+        let meta = p.desc || '';
+        if (p.risk) meta += ` <span style="color:${p.risk === '极高' || p.risk === '高' ? '#ef4444' : p.risk === '中' ? '#f59e0b' : '#10b981'}">[${p.risk}]</span>`;
+        if (meta) catHtml += `<div style="color:#10b981;margin-bottom:2px">${meta}</div>`;
+        catHtml += `<div style="color:#f8fafc;word-break:break-all;user-select:all">${escapeHtml(p.payload)}</div>`;
+        catHtml += '</div>';
+      });
+      catHtml += '</div>';
+      html += renderSection(categoryNames[key] || key, catHtml);
+    }
+    // Tips
+    if (data.tips && data.tips.length > 0) {
+      let tipsHtml = '';
+      data.tips.forEach(tip => {
+        tipsHtml += `<div style="padding:8px 12px;background:#fffbeb;border-left:3px solid var(--warning);margin-bottom:6px;border-radius:0 4px 4px 0;font-size:13px;color:#92400e">${escapeHtml(tip)}</div>`;
+      });
+      html += renderSection('注意事项', tipsHtml);
+    }
+    return html;
+  }
+
+  // Checklist (security)
+  if (data.checklist) {
+    let tHtml = '<table class="data-table"><thead><tr><th>检查项</th><th>严重性</th><th>检查命令</th><th>修复方案</th><th>判定标准</th></tr></thead><tbody>';
+    for (const item of data.checklist) {
+      const sevColor = item.severity === '高' ? 'var(--danger)' : 'var(--warning)';
+      tHtml += `<tr><td style="font-weight:600">${escapeHtml(item.name)}</td>`;
+      tHtml += `<td><span style="color:${sevColor};font-weight:600">${escapeHtml(item.severity||'')}</span></td>`;
+      tHtml += `<td><code style="font-size:12px">${escapeHtml(item.cmd||'')}</code></td>`;
+      tHtml += `<td><code style="font-size:12px">${escapeHtml(item.fix||'')}</code></td>`;
+      tHtml += `<td>${escapeHtml(item.check||'')}</td></tr>`;
+    }
+    tHtml += '</tbody></table>';
+    html += tHtml;
+    // Extra sections
+    const rest = {...data}; delete rest.checklist; delete rest.success;
+    if (Object.keys(rest).length > 0) html += renderObject(rest);
+    return html;
+  }
+
+  // SQL validation
+  if (data.errors !== undefined && data.warnings !== undefined) {
+    if (data.valid) {
+      html += '<div style="padding:10px 14px;background:#dcfce7;border:1px solid #86efac;border-radius:6px;color:#166534;font-weight:600;margin-bottom:12px">SQL语法正确</div>';
+    } else {
+      html += '<div style="padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;color:#991b1b;font-weight:600;margin-bottom:12px">发现语法问题</div>';
+    }
+    if (data.errors && data.errors.length > 0) {
+      html += '<div style="margin-bottom:12px"><div style="font-weight:600;color:var(--danger);margin-bottom:6px">错误</div>';
+      for (const e of data.errors) {
+        html += `<div style="padding:8px 12px;background:#fef2f2;border-left:3px solid var(--danger);margin-bottom:4px;border-radius:0 4px 4px 0;font-size:13px">${escapeHtml(e.msg)}</div>`;
+      }
+      html += '</div>';
+    }
+    if (data.warnings && data.warnings.length > 0) {
+      html += '<div style="margin-bottom:12px"><div style="font-weight:600;color:var(--warning);margin-bottom:6px">警告</div>';
+      for (const w of data.warnings) {
+        html += `<div style="padding:8px 12px;background:#fffbeb;border-left:3px solid var(--warning);margin-bottom:4px;border-radius:0 4px 4px 0;font-size:13px">${escapeHtml(w)}</div>`;
+      }
+      html += '</div>';
+    }
+    return html;
+  }
+
+  // Competition clean result
+  if (data.original_rows !== undefined && data.cleaned_rows !== undefined) {
+    html += '<div class="summary-card">';
+    html += `<div class="summary-item"><div class="label">原始行数</div><div class="value">${data.original_rows}</div></div>`;
+    html += `<div class="summary-item"><div class="label">清洗后行数</div><div class="value">${data.cleaned_rows}</div></div>`;
+    html += `<div class="summary-item"><div class="label">删除行数</div><div class="value" style="color:var(--danger)">${data.removed_total || 0}</div></div>`;
+    html += '</div>';
+    if (data.removed_details && data.removed_details.length > 0) {
+      let rdHtml = '';
+      for (const rd of data.removed_details) {
+        rdHtml += `<div style="padding:8px 12px;background:#fef2f2;border-left:3px solid var(--danger);margin-bottom:4px;border-radius:0 4px 4px 0;font-size:13px">`;
+        rdHtml += `<strong>${escapeHtml(rd.reason)}</strong>：${rd.count || 0} 条`;
+        if (rd.samples) {
+          rdHtml += `<div style="font-size:12px;color:var(--text-secondary);margin-top:4px">示例: ${rd.samples.slice(0,3).map(s => `行${s.row}(${s.value||''})`).join(', ')}</div>`;
+        }
+        rdHtml += '</div>';
+      }
+      html += renderSection('删除详情', rdHtml);
+    }
+    if (data.preview && data.preview.length > 0) {
+      html += renderSection('清洗后数据预览', renderTable(data.preview));
+    }
+    if (data.cleaned_csv) {
+      html += renderSection('清洗后CSV', `<pre style="background:var(--code-bg);padding:12px;border-radius:6px;max-height:300px;overflow:auto;font-size:12px">${escapeHtml(data.cleaned_csv.substring(0, 5000))}</pre>`);
+    }
+    return html;
+  }
+
+  // Ref integrity
+  if (data.orphaned_count !== undefined) {
+    const okColor = data.integrity_ok ? 'var(--success)' : 'var(--danger)';
+    const okText = data.integrity_ok ? '参照完整性校验通过' : '发现孤立记录';
+    html += `<div style="padding:10px 14px;background:${data.integrity_ok ? '#dcfce7' : '#fef2f2'};border:1px solid ${data.integrity_ok ? '#86efac' : '#fecaca'};border-radius:6px;color:${data.integrity_ok ? '#166534' : '#991b1b'};font-weight:600;margin-bottom:12px">${okText}</div>`;
+    html += '<div class="summary-card">';
+    html += `<div class="summary-item"><div class="label">主表行数</div><div class="value">${data.main_table_rows}</div></div>`;
+    html += `<div class="summary-item"><div class="label">引用表行数</div><div class="value">${data.ref_table_rows}</div></div>`;
+    html += `<div class="summary-item"><div class="label">孤立记录</div><div class="value" style="color:${okColor}">${data.orphaned_count}</div></div>`;
+    html += `<div class="summary-item"><div class="label">未引用记录</div><div class="value">${data.unreferenced_count}</div></div>`;
+    html += '</div>';
+    if (data.orphaned_values && data.orphaned_values.length > 0) {
+      html += renderSection('孤立值(前50)', `<div style="font-family:monospace;font-size:13px;word-break:break-all">${data.orphaned_values.map(v => escapeHtml(String(v))).join(', ')}</div>`);
+    }
+    return html;
+  }
+
+  // Excel parse result
+  if (data.sheets) {
+    html += '<div class="summary-card">';
+    html += `<div class="summary-item"><div class="label">文件</div><div class="value" style="font-size:14px">${escapeHtml(data.file||'')}</div></div>`;
+    html += `<div class="summary-item"><div class="label">Sheet数</div><div class="value">${data.sheet_count}</div></div>`;
+    html += '</div>';
+    for (const [sname, sinfo] of Object.entries(data.sheets)) {
+      let sHtml = `<div class="summary-card" style="margin-bottom:12px">`;
+      sHtml += `<div class="summary-item"><div class="label">行数</div><div class="value">${sinfo.rows}</div></div>`;
+      sHtml += `<div class="summary-item"><div class="label">列数</div><div class="value">${sinfo.columns.length}</div></div>`;
+      sHtml += `<div class="summary-item"><div class="label">空值行</div><div class="value">${Object.values(sinfo.null_counts||{}).reduce((a,b)=>a+b,0)}</div></div>`;
+      sHtml += '</div>';
+      sHtml += '<div style="font-size:13px;margin-bottom:8px"><strong>列：</strong>' + sinfo.columns.map(c => `<span style="background:var(--code-bg);padding:2px 6px;border-radius:3px;margin:2px;display:inline-block">${escapeHtml(String(c))}</span>`).join(' ') + '</div>';
+      if (sinfo.preview && sinfo.preview.length > 0) {
+        sHtml += renderTable(sinfo.preview);
+      }
+      html += renderSection(sname, sHtml);
+    }
+    return html;
+  }
+
+  // Balance desensitize
+  if (data.results && data.results.length > 0 && data.results[0].formatted !== undefined) {
+    html += '<table class="data-table"><thead><tr><th>原始金额</th><th>脱敏结果</th></tr></thead><tbody>';
+    for (const r of data.results) {
+      html += `<tr><td>${escapeHtml(String(r.original))}</td><td style="font-weight:600;color:var(--primary)">${escapeHtml(r.formatted || r.error || '')}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    return html;
+  }
+
+  // Age transform
+  if (data.results && data.results.length > 0 && data.results[0].range !== undefined) {
+    html += '<table class="data-table"><thead><tr><th>年龄</th><th>分段</th></tr></thead><tbody>';
+    for (const r of data.results) {
+      html += `<tr><td>${r.age}</td><td style="font-weight:600;color:var(--primary)">${escapeHtml(r.range)}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    if (data.distribution) {
+      html += renderSection('分布统计', renderTable(Object.entries(data.distribution).map(([k,v]) => ({区间: k, 人数: v}))));
+    }
+    return html;
+  }
+
+  // Luhn check
+  if (data.luhn_valid !== undefined) {
+    const color = data.luhn_valid ? 'var(--success)' : 'var(--danger)';
+    const text = data.luhn_valid ? 'Luhn校验通过' : 'Luhn校验失败';
+    html += `<div style="padding:10px 14px;background:${data.luhn_valid ? '#dcfce7' : '#fef2f2'};border:1px solid ${data.luhn_valid ? '#86efac' : '#fecaca'};border-radius:6px;color:${data.luhn_valid ? '#166534' : '#991b1b'};font-weight:600;margin-bottom:12px">${text}</div>`;
+    const rest = {...data}; delete rest.success;
+    html += renderObject(rest);
+    return html;
+  }
+
+  // ID card check
+  if (data.valid !== undefined && data.birth) {
+    const color = data.valid ? 'var(--success)' : 'var(--danger)';
+    const text = data.valid ? '身份证校验通过' : '身份证校验失败';
+    html += `<div style="padding:10px 14px;background:${data.valid ? '#dcfce7' : '#fef2f2'};border:1px solid ${data.valid ? '#86efac' : '#fecaca'};border-radius:6px;color:${data.valid ? '#166534' : '#991b1b'};font-weight:600;margin-bottom:12px">${text}</div>`;
+    html += '<div class="summary-card">';
+    if (data.birth) html += `<div class="summary-item"><div class="label">出生日期</div><div class="value" style="font-size:14px">${escapeHtml(data.birth)}</div></div>`;
+    if (data.age) html += `<div class="summary-item"><div class="label">年龄</div><div class="value">${data.age}</div></div>`;
+    if (data.gender) html += `<div class="summary-item"><div class="label">性别</div><div class="value">${escapeHtml(data.gender)}</div></div>`;
+    html += '</div>';
+    return html;
+  }
+
+  // Syntax reference
+  if (data.DDL || data.DML) {
+    for (const [section, items] of Object.entries(data)) {
+      if (section === 'success') continue;
+      if (typeof items === 'object') {
+        let sHtml = '';
+        for (const [cmd, syntax] of Object.entries(items)) {
+          sHtml += `<div style="margin-bottom:8px"><div style="font-weight:600;color:var(--primary);font-size:13px">${escapeHtml(cmd)}</div>`;
+          sHtml += `<pre style="background:var(--code-bg);padding:8px;border-radius:4px;font-size:12px;margin-top:2px">${escapeHtml(syntax)}</pre></div>`;
+        }
+        html += renderSection(section, sHtml);
+      }
+    }
+    return html;
+  }
+
+  // Generic object
+  html += renderObject(data);
+  return html;
+}
+
+// Render helpers
+function renderSection(title, content) {
+  return `<div style="margin-bottom:16px"><div style="font-weight:600;font-size:14px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);color:var(--text)">${escapeHtml(title)}</div>${content}</div>`;
+}
+
+function renderObject(obj) {
+  let html = '';
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === 'success') continue;
+    if (typeof value === 'string' && value.length > 100) {
+      html += renderSection(key, `<pre style="background:var(--code-bg);padding:10px;border-radius:4px;font-size:12px;white-space:pre-wrap">${highlightFlags(value)}</pre>`);
+    } else if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+      html += renderSection(key, renderTable(value));
+    } else if (typeof value === 'object' && value !== null) {
+      html += renderSection(key, `<pre style="background:var(--code-bg);padding:10px;border-radius:4px;font-size:12px">${escapeHtml(JSON.stringify(value, null, 2))}</pre>`);
+    } else {
+      html += `<div style="margin-bottom:6px;font-size:14px"><span style="color:var(--text-secondary)">${escapeHtml(key)}：</span>${renderValue(value)}</div>`;
+    }
+  }
+  return html;
+}
+
+function renderTable(rows) {
+  if (!rows || rows.length === 0) return '<span style="color:var(--text-secondary)">无数据</span>';
+  const cols = Object.keys(rows[0]);
+  let html = '<div style="overflow-x:auto"><table class="data-table"><thead><tr>';
+  cols.forEach(c => { html += `<th>${escapeHtml(String(c))}</th>`; });
+  html += '</tr></thead><tbody>';
+  rows.forEach(row => {
+    html += '<tr>';
+    cols.forEach(c => {
+      const val = row[c] !== undefined && row[c] !== null ? String(row[c]) : '';
+      html += `<td>${escapeHtml(val)}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function renderValue(val) {
+  if (val === null || val === undefined) return '<span style="color:var(--text-secondary)">-</span>';
+  if (typeof val === 'boolean') return val ? '<span style="color:var(--success)">是</span>' : '<span style="color:var(--danger)">否</span>';
+  if (typeof val === 'number') return `<span style="font-weight:600">${val}</span>`;
+  return highlightFlags(String(val));
+}
+
+// Copy text
+function copyText(btn) {
+  const body = btn.closest('.result-block').querySelector('.result-body');
+  navigator.clipboard.writeText(body.textContent).then(() => {
+    btn.textContent = '已复制';
+    setTimeout(() => btn.textContent = '复制', 2000);
+  });
+}
+
+function copyCommands(btn) {
+  // Find the terminal block above the button
+  const container = btn.parentElement.parentElement;
+  const terminal = container.querySelector('div[style*="background:#1e293b"]');
+  if (!terminal) return;
+  const lines = terminal.querySelectorAll('div[style*="color:#e2e8f0"]');
+  const commands = Array.from(lines).map(line => {
+    const text = line.textContent;
+    return text.replace(/^\$\s*/, '').trim();
+  }).filter(cmd => cmd.length > 0);
+  navigator.clipboard.writeText(commands.join('\n')).then(() => {
+    btn.textContent = '已复制';
+    setTimeout(() => btn.textContent = '复制所有命令', 2000);
+  });
+}
+
+function copySingleCommand(btn) {
+  const container = btn.parentElement.parentElement;
+  const terminal = container.querySelector('div[style*="background:#1e293b"]');
+  if (!terminal) return;
+  const cmdDiv = terminal.querySelector('div[style*="color:#f8fafc"]');
+  if (!cmdDiv) return;
+  navigator.clipboard.writeText(cmdDiv.textContent.trim()).then(() => {
+    btn.textContent = '已复制';
+    setTimeout(() => btn.textContent = '复制命令', 2000);
+  });
+}
+
+function copyPayloads(btn) {
+  const container = btn.parentElement.parentElement;
+  const terminal = container.querySelector('div[style*="background:#1e293b"]');
+  if (!terminal) return;
+  const items = terminal.querySelectorAll('div[style*="margin-bottom:10px"]');
+  const payloads = Array.from(items).map(item => {
+    const lines = item.querySelectorAll('div');
+    if (lines.length >= 2) return lines[1].textContent.trim();
+    return '';
+  }).filter(p => p.length > 0);
+  navigator.clipboard.writeText(payloads.join('\n')).then(() => {
+    btn.textContent = '已复制';
+    setTimeout(() => btn.textContent = '复制所有Payload', 2000);
+  });
+}
+
+// Generic file upload API call
+async function callApi(url, fileInputId) {
+  const fileInput = document.getElementById(fileInputId);
+  if (!fileInput.files.length) { alert('请先选择文件'); return; }
+
+  const tab = url.split('/')[2];
+  hideError(tab);
+  document.getElementById(tab + '-result').innerHTML = '';
+  showLoading(tab);
+
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+
+  try {
+    const resp = await fetch(API + url, { method: 'POST', body: formData });
+    const data = await resp.json();
+    hideLoading(tab);
+    if (data.error && !data.success) {
+      showError(tab, data.error);
+    } else {
+      renderResult(tab + '-result', data, fileInput.files[0].name);
+    }
+  } catch (e) {
+    hideLoading(tab);
+    showError(tab, '请求失败: ' + e.message);
+  }
+}
+
+// Auto detect
+async function autoDetect() {
+  const fileInput = document.getElementById('auto-file');
+
+  hideError('auto');
+  document.getElementById('auto-result').innerHTML = '';
+
+  if (!fileInput.files.length) {
+    showError('auto', '请先拖入或选择文件');
+    return;
+  }
+
+  showLoading('auto');
+
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+
+  try {
+    const resp = await fetch(API + '/api/auto', { method: 'POST', body: formData });
+    const data = await resp.json();
+    hideLoading('auto');
+
+    if (data.error && !data.success) {
+      showError('auto', data.error);
+    } else {
+      if (data.detected_type) {
+        renderResult('auto-result', { detected_type: data.detected_type }, '检测结果');
+      }
+      if (data.results) {
+        data.results.forEach(r => {
+          renderResult('auto-result', r.data, r.module);
+        });
+      }
+    }
+  } catch (e) {
+    hideLoading('auto');
+    showError('auto', '请求失败: ' + e.message);
+  }
+}
+
+function autoDetectFile(input) {
+  if (input.files.length) autoDetect();
+}
+
+// Crypto API
+async function cryptoApi(action, inputId, field) {
+  const input = document.getElementById(inputId);
+  const value = input.value.trim();
+  if (!value) { alert('请输入内容'); return; }
+
+  hideError('crypto');
+  document.getElementById('crypto-result').innerHTML = '';
+  showLoading('crypto');
+
+  const body = {};
+  body[field || 'text'] = value;
+
+  try {
+    const resp = await fetch(API + '/api/crypto/' + action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    hideLoading('crypto');
+    if (data.error && !data.success) {
+      showError('crypto', data.error);
+    } else {
+      renderResult('crypto-result', data, action);
+    }
+  } catch (e) {
+    hideLoading('crypto');
+    showError('crypto', '请求失败: ' + e.message);
+  }
+}
+
+async function vigenereDecrypt() {
+  const text = document.getElementById('vig-text').value.trim();
+  const key = document.getElementById('vig-key').value.trim();
+  if (!text || !key) { alert('请输入密文和密钥'); return; }
+
+  hideError('crypto');
+  document.getElementById('crypto-result').innerHTML = '';
+  showLoading('crypto');
+
+  try {
+    const resp = await fetch(API + '/api/crypto/vigenere', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, key })
+    });
+    const data = await resp.json();
+    hideLoading('crypto');
+    renderResult('crypto-result', data, 'Vigenere解密');
+  } catch (e) {
+    hideLoading('crypto');
+    showError('crypto', '请求失败: ' + e.message);
+  }
+}
+
+// Data API
+async function callJsonApi(url, body) {
+  hideError('data');
+  document.getElementById('data-result').innerHTML = '';
+  showLoading('data');
+  try {
+    const resp = await fetch(API + url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    hideLoading('data');
+    if (data.error && !data.success) {
+      showError('data', data.error);
+    } else {
+      renderResult('data-result', data, url.split('/').pop());
+    }
+  } catch (e) {
+    hideLoading('data');
+    showError('data', '请求失败: ' + e.message);
+  }
+}
+
+async function dataApi(action, inputId, field) {
+  const input = document.getElementById(inputId);
+  const value = input.value.trim();
+  if (!value) { alert('请输入内容'); return; }
+
+  hideError('data');
+  document.getElementById('data-result').innerHTML = '';
+  showLoading('data');
+
+  const body = {};
+  body[field] = value;
+
+  try {
+    const resp = await fetch(API + '/api/data/' + action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    hideLoading('data');
+    if (data.error && !data.success) {
+      showError('data', data.error);
+    } else {
+      renderResult('data-result', data, action);
+    }
+  } catch (e) {
+    hideLoading('data');
+    showError('data', '请求失败: ' + e.message);
+  }
+}
+
+// Archive extract
+async function archiveExtract() {
+  const fileInput = document.getElementById('arch-file');
+  const password = document.getElementById('arch-password').value;
+  if (!fileInput.files.length) { alert('请先选择文件'); return; }
+
+  hideError('archive');
+  document.getElementById('archive-result').innerHTML = '';
+  showLoading('archive');
+
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  formData.append('password', password);
+
+  try {
+    const resp = await fetch(API + '/api/archive/extract', { method: 'POST', body: formData });
+    const data = await resp.json();
+    hideLoading('archive');
+    if (data.error && !data.success) {
+      showError('archive', data.error);
+    } else {
+      renderResult('archive-result', data, '解压结果');
+    }
+  } catch (e) {
+    hideLoading('archive');
+    showError('archive', '请求失败: ' + e.message);
+  }
+}
+
+// Web API
+async function webApi(action) {
+  hideError('web');
+  document.getElementById('web-result').innerHTML = '';
+  showLoading('web');
+
+  const body = {};
+  if (action === 'sqli') {
+    body.db_type = document.getElementById('web-db-type').value;
+  }
+  if (action === 'sqli-guide') {
+    body.type = 'all';
+  }
+  if (action === 'db-hardening') {
+    body.db_type = document.getElementById('web-db-type').value || 'mysql';
+  }
+
+  try {
+    const resp = await fetch(API + '/api/web/' + action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    hideLoading('web');
+    renderResult('web-result', data, action);
+  } catch (e) {
+    hideLoading('web');
+    showError('web', '请求失败: ' + e.message);
+  }
+}
+
+async function generateSqlmap() {
+  const url = document.getElementById('web-url').value.trim();
+  if (!url) { alert('请输入目标URL'); return; }
+
+  hideError('web');
+  document.getElementById('web-result').innerHTML = '';
+  showLoading('web');
+
+  try {
+    const resp = await fetch(API + '/api/web/sqlmap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: url,
+        data: document.getElementById('web-data').value || null,
+        cookie: document.getElementById('web-cookie').value || null
+      })
+    });
+    const data = await resp.json();
+    hideLoading('web');
+    renderResult('web-result', data, 'sqlmap命令');
+  } catch (e) {
+    hideLoading('web');
+    showError('web', '请求失败: ' + e.message);
+  }
+}
+
+// Firewall
+async function loadFirewallScenarios() {
+  try {
+    const resp = await fetch(API + '/api/firewall/scenarios');
+    const data = await resp.json();
+    const platform = document.getElementById('fw-platform').value;
+    const select = document.getElementById('fw-scenario');
+    select.innerHTML = '';
+
+    // Filter scenarios by platform
+    let groups = {};
+    if (platform === 'iptables') {
+      groups['规则模板'] = data['iptables规则模板'] || [];
+      groups['预设场景'] = data['iptables预设场景'] || [];
+    } else if (platform === 'nftables') {
+      groups['nftables场景'] = data['nftables预设场景'] || [];
+    } else if (platform === 'windows') {
+      groups['Windows防火墙'] = data['Windows防火墙预设场景'] || [];
+    }
+
+    for (const [group, items] of Object.entries(groups)) {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = group;
+      items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        optgroup.appendChild(opt);
+      });
+      select.appendChild(optgroup);
+    }
+  } catch (e) {
+    console.error('Failed to load scenarios:', e);
+  }
+}
+
+async function generateFirewall() {
+  const scenario = document.getElementById('fw-scenario').value;
+  const platform = document.getElementById('fw-platform').value;
+  if (!scenario) { alert('请选择场景'); return; }
+
+  hideError('firewall');
+  document.getElementById('firewall-result').innerHTML = '';
+  showLoading('firewall');
+
+  const config = {};
+  document.querySelectorAll('#fw-variables input').forEach(input => {
+    if (input.value) config[input.dataset.key] = input.value;
+  });
+
+  try {
+    const resp = await fetch(API + '/api/firewall/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario, config, platform })
+    });
+    const data = await resp.json();
+    hideLoading('firewall');
+
+    if (data.variables) {
+      const container = document.getElementById('fw-variables');
+      container.innerHTML = '<div style="margin-top:8px;padding:12px;background:var(--code-bg);border-radius:8px"><h4 style="font-size:13px;margin-bottom:8px">填写参数</h4>';
+      for (const [key, desc] of Object.entries(data.variables)) {
+        container.innerHTML += `<div class="form-group"><label style="font-size:12px;color:var(--text-secondary)">${desc}</label><input type="text" data-key="${key}" placeholder="${desc}" style="margin-bottom:6px"></div>`;
+      }
+      container.innerHTML += '<button class="btn btn-primary btn-sm" onclick="generateFirewall()">重新生成</button></div>';
+    }
+
+    renderResult('firewall-result', data, scenario);
+  } catch (e) {
+    hideLoading('firewall');
+    showError('firewall', '请求失败: ' + e.message);
+  }
+}
+
+async function fwPreset(scenario) {
+  const platform = document.getElementById('fw-platform').value;
+  hideError('firewall');
+  document.getElementById('firewall-result').innerHTML = '';
+  showLoading('firewall');
+  try {
+    const resp = await fetch(API + '/api/firewall/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scenario, config: {}, platform })
+    });
+    const data = await resp.json();
+    hideLoading('firewall');
+    renderResult('firewall-result', data, scenario);
+  } catch (e) {
+    hideLoading('firewall');
+    showError('firewall', '请求失败: ' + e.message);
+  }
+}
+
+async function analyzeFirewallRules() {
+  const rules = document.getElementById('fw-analyze-input').value.trim();
+  if (!rules) { alert('请输入规则'); return; }
+  hideError('firewall');
+  document.getElementById('firewall-result').innerHTML = '';
+  showLoading('firewall');
+  try {
+    const resp = await fetch(API + '/api/firewall/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rules })
+    });
+    const data = await resp.json();
+    hideLoading('firewall');
+    renderResult('firewall-result', data, '规则分析');
+  } catch (e) {
+    hideLoading('firewall');
+    showError('firewall', '请求失败: ' + e.message);
+  }
+}
+
+// Pentest API
+async function pentestNmap() {
+  const target = document.getElementById('nmap-target').value.trim();
+  if (!target) { alert('请输入目标'); return; }
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/nmap', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({target, scan_type:'all'})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, 'nmap命令');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentestReverseShell() {
+  const lhost = document.getElementById('shell-lhost').value.trim();
+  const lport = document.getElementById('shell-lport').value;
+  if (!lhost) { alert('请输入监听IP'); return; }
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/reverse-shell', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({lhost, lport: parseInt(lport)})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, '反弹Shell');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentestPrivesc(os) {
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/privesc', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({os})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, os + '提权检查');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentestHashCrack() {
+  const hash = document.getElementById('hash-input').value.trim();
+  if (!hash) { alert('请输入Hash'); return; }
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/hash-crack', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({hash, hash_type:'auto'})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, 'Hash破解');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentestDecodeCreds() {
+  const text = document.getElementById('creds-input').value.trim();
+  if (!text) { alert('请输入内容'); return; }
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/decode-creds', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({text})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, '凭据解码');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+// Pentest new functions
+async function pentCompetition(taskNum) {
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/competition', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({task: taskNum, config: {}})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, '渗透竞赛题' + taskNum);
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentInfoGather() {
+  const target = document.getElementById('pent-info-target').value.trim();
+  if (!target) { alert('请输入目标'); return; }
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/info-gather', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({target})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, '信息收集');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentWebEnum() {
+  const target = document.getElementById('pent-info-target').value.trim();
+  if (!target) { alert('请输入目标'); return; }
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/web-enum', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({target})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, 'Web枚举');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentNmapType(scanType) {
+  const target = document.getElementById('nmap-target').value.trim();
+  if (!target) { alert('请输入目标'); return; }
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/nmap', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({target, scan_type: scanType})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, 'nmap-' + scanType);
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentExploitSuggest() {
+  const service = document.getElementById('pent-exploit-svc').value.trim();
+  const version = document.getElementById('pent-exploit-ver').value.trim();
+  if (!service) { alert('请输入服务名'); return; }
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/exploit-suggest', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({service, version})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, '漏洞建议');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentCredAttack() {
+  const target = document.getElementById('pent-cred-target').value.trim();
+  if (!target) { alert('请输入目标'); return; }
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/cred-attack', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({config: {target}})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, '凭据攻击');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentPostExploit(os) {
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/post-exploit', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({os})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, os + '后渗透');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+async function pentLateral(os) {
+  hideError('pentest');
+  document.getElementById('pentest-result').innerHTML = '';
+  showLoading('pentest');
+  try {
+    const resp = await fetch(API + '/api/pentest/lateral', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({os})
+    });
+    const data = await resp.json();
+    hideLoading('pentest');
+    renderResult('pentest-result', data, os + '横向移动');
+  } catch(e) { hideLoading('pentest'); showError('pentest', e.message); }
+}
+
+// Competition firewall task
+async function competitionFw(taskNum) {
+  hideError('firewall');
+  document.getElementById('firewall-result').innerHTML = '';
+  showLoading('firewall');
+  try {
+    const config = {};
+    document.querySelectorAll('#fw-comp-variables input').forEach(input => {
+      if (input.value) config[input.dataset.key] = input.value;
+    });
+    const resp = await fetch(API + '/api/firewall/competition', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({task: taskNum, config})
+    });
+    const data = await resp.json();
+    hideLoading('firewall');
+    if (data.variables) {
+      const container = document.getElementById('fw-comp-variables');
+      container.innerHTML = '<div style="padding:12px;background:var(--code-bg);border-radius:8px"><h4 style="font-size:13px;margin-bottom:8px">填写参数</h4>';
+      for (const [key, desc] of Object.entries(data.variables)) {
+        container.innerHTML += `<div class="form-group"><label style="font-size:12px;color:var(--text-secondary)">${desc}</label><input type="text" data-key="${key}" placeholder="${desc}" style="margin-bottom:6px"></div>`;
+      }
+      container.innerHTML += `<button class="btn btn-primary btn-sm" onclick="competitionFw(${taskNum})">生成规则</button></div>`;
+    }
+    renderResult('firewall-result', data, '竞赛题' + taskNum);
+  } catch(e) { hideLoading('firewall'); showError('firewall', e.message); }
+}
+
+// Network (信息网络) functions
+async function netCallJsonApi(url, body) {
+  hideError('network');
+  document.getElementById('network-result').innerHTML = '';
+  showLoading('network');
+  try {
+    const resp = await fetch(API + url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    hideLoading('network');
+    if (data.error && !data.success) {
+      showError('network', data.error);
+    } else {
+      renderResult('network-result', data, url.split('/').pop());
+    }
+  } catch (e) {
+    hideLoading('network');
+    showError('network', '请求失败: ' + e.message);
+  }
+}
+
+async function netSubnetCalc() {
+  const cidr = document.getElementById('net-subnet-cidr').value.trim();
+  if (!cidr) { alert('请输入CIDR格式IP'); return; }
+  await netCallJsonApi('/api/network/subnet', { ip_cidr: cidr });
+}
+
+async function netSubnetSplit() {
+  const cidr = document.getElementById('net-split-cidr').value.trim();
+  const prefix = parseInt(document.getElementById('net-split-prefix').value);
+  if (!cidr || !prefix) { alert('请输入CIDR和新前缀'); return; }
+  await netCallJsonApi('/api/network/subnet-split', { ip_cidr: cidr, new_prefix: prefix });
+}
+
+async function netIpInfo() {
+  const ip = document.getElementById('net-ip-addr').value.trim();
+  if (!ip) { alert('请输入IP地址'); return; }
+  await netCallJsonApi('/api/network/ip-info', { ip });
+}
+
+async function netConfig(action) {
+  const config = {};
+  document.querySelectorAll('#net-config-vars input').forEach(input => {
+    if (input.value) config[input.dataset.key] = input.value;
+  });
+  await netCallJsonApi('/api/network/config', { action, config });
+}
+
+async function netDns(action) {
+  const config = {};
+  document.querySelectorAll('#net-service-vars input').forEach(input => {
+    if (input.value) config[input.dataset.key] = input.value;
+  });
+  await netCallJsonApi('/api/network/dns', { action, config });
+}
+
+async function netDhcp(action) {
+  const config = {};
+  document.querySelectorAll('#net-service-vars input').forEach(input => {
+    if (input.value) config[input.dataset.key] = input.value;
+  });
+  await netCallJsonApi('/api/network/dhcp', { action, config });
+}
+
+async function netDiag(action) {
+  const target = document.getElementById('net-diag-target').value.trim();
+  const port = document.getElementById('net-diag-port').value.trim();
+  const config = {};
+  if (target) config.target = target;
+  if (port) config.port = port;
+  await netCallJsonApi('/api/network/diagnose', { action, config });
+}
+
+async function netService(action) {
+  const config = {};
+  await netCallJsonApi('/api/network/service', { action, config });
+}
+
+async function netCompetition(taskNum) {
+  const config = {};
+  document.querySelectorAll('#net-config-vars input').forEach(input => {
+    if (input.value) config[input.dataset.key] = input.value;
+  });
+  await netCallJsonApi('/api/network/competition', { task: taskNum, config });
+}
+
+// Forensics extended commands
+async function forensicsCmd(type) {
+  hideError('forensics');
+  document.getElementById('forensics-result').innerHTML = '';
+  showLoading('forensics');
+  try {
+    let url, body;
+    if (type === 'volatility') {
+      url = '/api/forensics/volatility';
+      body = JSON.stringify({type: 'all'});
+    } else if (type === 'disk') {
+      url = '/api/forensics/disk';
+      body = JSON.stringify({});
+    } else {
+      url = '/api/forensics/evidence-guide';
+      body = JSON.stringify({});
+    }
+    const resp = await fetch(API + url, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body
+    });
+    const data = await resp.json();
+    hideLoading('forensics');
+    renderResult('forensics-result', data, type);
+  } catch(e) { hideLoading('forensics'); showError('forensics', e.message); }
+}
+
+// Forensics competition tasks
+async function forenCompetition(taskNum) {
+  hideError('forensics');
+  document.getElementById('forensics-result').innerHTML = '';
+  showLoading('forensics');
+  try {
+    const resp = await fetch(API + '/api/forensics/competition', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({task: taskNum, config: {}})
+    });
+    const data = await resp.json();
+    hideLoading('forensics');
+    renderResult('forensics-result', data, '取证竞赛题' + taskNum);
+  } catch(e) { hideLoading('forensics'); showError('forensics', e.message); }
+}
+
+// Forensics hex dump
+async function forenHexDump() {
+  const fileInput = document.getElementById('foren-file');
+  if (!fileInput.files.length) { alert('请先选择文件'); return; }
+  const offset = parseInt(document.getElementById('foren-hex-offset').value) || 0;
+  const length = parseInt(document.getElementById('foren-hex-length').value) || 512;
+  hideError('forensics');
+  document.getElementById('forensics-result').innerHTML = '';
+  showLoading('forensics');
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  formData.append('offset', offset);
+  formData.append('length', length);
+  try {
+    const resp = await fetch(API + '/api/forensics/hex-dump', { method: 'POST', body: formData });
+    const data = await resp.json();
+    hideLoading('forensics');
+    if (data.error && !data.success) {
+      showError('forensics', data.error);
+    } else {
+      renderResult('forensics-result', data, 'Hex转储');
+    }
+  } catch(e) { hideLoading('forensics'); showError('forensics', e.message); }
+}
+
+// Forensics network commands
+async function forenNetworkCmds() {
+  hideError('forensics');
+  document.getElementById('forensics-result').innerHTML = '';
+  showLoading('forensics');
+  try {
+    const resp = await fetch(API + '/api/forensics/network-cmds', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}'
+    });
+    const data = await resp.json();
+    hideLoading('forensics');
+    renderResult('forensics-result', data, '网络取证命令');
+  } catch(e) { hideLoading('forensics'); showError('forensics', e.message); }
+}
+
+// Forensics mobile commands
+async function forenMobileCmds() {
+  hideError('forensics');
+  document.getElementById('forensics-result').innerHTML = '';
+  showLoading('forensics');
+  try {
+    const resp = await fetch(API + '/api/forensics/mobile-cmds', {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}'
+    });
+    const data = await resp.json();
+    hideLoading('forensics');
+    renderResult('forensics-result', data, '移动取证命令');
+  } catch(e) { hideLoading('forensics'); showError('forensics', e.message); }
+}
+
+// Data cleaning API
+async function cleanApi(action) {
+  hideError('dataclean');
+  document.getElementById('dataclean-result').innerHTML = '';
+  showLoading('dataclean');
+  try {
+    let body;
+    if (action === 'luhn') {
+      const number = document.getElementById('luhn-input').value.trim();
+      if (!number) { alert('请输入卡号'); hideLoading('dataclean'); return; }
+      body = JSON.stringify({number});
+    } else if (action === 'id-card') {
+      const id = document.getElementById('idcard-input').value.trim();
+      if (!id) { alert('请输入身份证号'); hideLoading('dataclean'); return; }
+      body = JSON.stringify({id});
+    } else if (action === 'hash') {
+      const text = document.getElementById('hash-text').value.trim();
+      const algo = document.getElementById('hash-algo').value;
+      if (!text) { alert('请输入文本'); hideLoading('dataclean'); return; }
+      body = JSON.stringify({text, algo});
+    }
+    const resp = await fetch(API + '/api/clean/' + action, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body
+    });
+    const data = await resp.json();
+    hideLoading('dataclean');
+    renderResult('dataclean-result', data, action);
+  } catch(e) { hideLoading('dataclean'); showError('dataclean', e.message); }
+}
+
+// Database security API
+async function dbApi(action, extra) {
+  hideError('dbsec');
+  document.getElementById('dbsec-result').innerHTML = '';
+  showLoading('dbsec');
+  try {
+    let body;
+    if (action === 'security-check') {
+      body = JSON.stringify({db_type: extra || 'mysql'});
+    } else if (action === 'student-db' || action === 'syntax') {
+      body = JSON.stringify({});
+    }
+    const resp = await fetch(API + '/api/db/' + action, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body
+    });
+    const data = await resp.json();
+    hideLoading('dbsec');
+    renderResult('dbsec-result', data, action);
+  } catch(e) { hideLoading('dbsec'); showError('dbsec', e.message); }
+}
+
+async function dbJoinQuery() {
+  const tables = prompt('输入表名(逗号分隔，如 orders,customers)');
+  if (!tables) return;
+  const joinType = prompt('JOIN类型(LEFT/RIGHT/INNER，默认LEFT)', 'LEFT') || 'LEFT';
+  hideError('dbsec');
+  document.getElementById('dbsec-result').innerHTML = '';
+  showLoading('dbsec');
+  try {
+    const resp = await fetch(API + '/api/db/join', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({tables: tables.split(',').map(s=>s.trim()), join_type: joinType})
+    });
+    const data = await resp.json();
+    hideLoading('dbsec');
+    renderResult('dbsec-result', data, 'JOIN查询');
+  } catch(e) { hideLoading('dbsec'); showError('dbsec', e.message); }
+}
+
+async function generateSql() {
+  const type = document.getElementById('sql-type').value;
+  const table = document.getElementById('sql-table').value.trim();
+  if (!table) { alert('请输入表名'); return; }
+  hideError('dbsec');
+  document.getElementById('dbsec-result').innerHTML = '';
+  showLoading('dbsec');
+  try {
+    const columns = document.getElementById('sql-columns').value.trim() || '*';
+    const where = document.getElementById('sql-where').value.trim();
+    const order_by = document.getElementById('sql-order').value.trim();
+    const body = {type, table, columns, where, order_by};
+    const resp = await fetch(API + '/api/db/generate-sql', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    hideLoading('dbsec');
+    renderResult('dbsec-result', data, 'SQL语句');
+  } catch(e) { hideLoading('dbsec'); showError('dbsec', e.message); }
+}
+
+// Competition clean - one click
+async function competitionClean() {
+  const fileInput = document.getElementById('comp-file');
+  if (!fileInput.files.length) { alert('请先选择文件'); return; }
+  const tableType = document.getElementById('comp-table-type').value;
+
+  hideError('dataclean');
+  document.getElementById('dataclean-result').innerHTML = '';
+  showLoading('dataclean');
+
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  formData.append('table_type', tableType);
+
+  try {
+    const resp = await fetch(API + '/api/clean/competition', { method: 'POST', body: formData });
+    const data = await resp.json();
+    hideLoading('dataclean');
+    if (data.error && !data.success) {
+      showError('dataclean', data.error);
+    } else {
+      renderResult('dataclean-result', data, '竞赛清洗结果');
+    }
+  } catch(e) { hideLoading('dataclean'); showError('dataclean', e.message); }
+}
+
+// Excel quality analysis
+async function excelQuality() {
+  const url = '/api/clean/excel';
+  const fileInput = document.getElementById('excel-file');
+  if (!fileInput.files.length) { alert('请先选择Excel文件'); return; }
+
+  hideError('dataclean');
+  document.getElementById('dataclean-result').innerHTML = '';
+  showLoading('dataclean');
+
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+
+  try {
+    const resp = await fetch(API + '/api/clean/excel', { method: 'POST', body: formData });
+    const data = await resp.json();
+    hideLoading('dataclean');
+    if (data.error && !data.success) {
+      showError('dataclean', data.error);
+    } else {
+      renderResult('dataclean-result', data, 'Excel解析结果');
+    }
+  } catch(e) { hideLoading('dataclean'); showError('dataclean', e.message); }
+}
+
+// Ref integrity check
+async function refIntegrityCheck() {
+  const f1 = document.getElementById('ref-file1');
+  const f2 = document.getElementById('ref-file2');
+  const col1 = document.getElementById('ref-col1').value.trim();
+  const col2 = document.getElementById('ref-col2').value.trim();
+
+  if (!f1.files.length || !f2.files.length) { alert('请上传两个文件'); return; }
+  if (!col1 || !col2) { alert('请输入关联列名'); return; }
+
+  hideError('dataclean');
+  document.getElementById('dataclean-result').innerHTML = '';
+  showLoading('dataclean');
+
+  const formData = new FormData();
+  formData.append('files', f1.files[0]);
+  formData.append('files', f2.files[0]);
+  formData.append('col1', col1);
+  formData.append('col2', col2);
+
+  try {
+    const resp = await fetch(API + '/api/clean/ref-integrity', { method: 'POST', body: formData });
+    const data = await resp.json();
+    hideLoading('dataclean');
+    if (data.error && !data.success) {
+      showError('dataclean', data.error);
+    } else {
+      renderResult('dataclean-result', data, '参照完整性校验');
+    }
+  } catch(e) { hideLoading('dataclean'); showError('dataclean', e.message); }
+}
+
+// Balance desensitization
+async function balanceDesensitize() {
+  const text = document.getElementById('balance-input').value.trim();
+  if (!text) { alert('请输入金额列表'); return; }
+  const amounts = text.split('\n').map(s => s.trim()).filter(s => s);
+
+  hideError('dataclean');
+  document.getElementById('dataclean-result').innerHTML = '';
+  showLoading('dataclean');
+
+  try {
+    const resp = await fetch(API + '/api/clean/balance', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({amounts})
+    });
+    const data = await resp.json();
+    hideLoading('dataclean');
+    renderResult('dataclean-result', data, '余额脱敏结果');
+  } catch(e) { hideLoading('dataclean'); showError('dataclean', e.message); }
+}
+
+// Age transform
+async function ageTransform() {
+  const text = document.getElementById('age-input').value.trim();
+  const mode = document.getElementById('age-mode').value;
+  if (!text) { alert('请输入年龄列表'); return; }
+  const ages = text.split('\n').map(s => s.trim()).filter(s => s);
+
+  hideError('dataclean');
+  document.getElementById('dataclean-result').innerHTML = '';
+  showLoading('dataclean');
+
+  try {
+    const resp = await fetch(API + '/api/clean/age-transform', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ages, mode})
+    });
+    const data = await resp.json();
+    hideLoading('dataclean');
+    renderResult('dataclean-result', data, '年龄分段结果');
+  } catch(e) { hideLoading('dataclean'); showError('dataclean', e.message); }
+}
+
+// SQL validate
+async function validateSql() {
+  const sql = document.getElementById('sql-editor').value.trim();
+  if (!sql) { alert('请输入SQL语句'); return; }
+
+  hideError('dbsec');
+  document.getElementById('dbsec-result').innerHTML = '';
+  showLoading('dbsec');
+
+  try {
+    const resp = await fetch(API + '/api/db/validate-sql', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({sql})
+    });
+    const data = await resp.json();
+    hideLoading('dbsec');
+    renderResult('dbsec-result', data, 'SQL纠错结果');
+  } catch(e) { hideLoading('dbsec'); showError('dbsec', e.message); }
+}
+
+// DB design template
+async function dbDesignTemplate(scenario) {
+  hideError('dbsec');
+  document.getElementById('dbsec-result').innerHTML = '';
+  showLoading('dbsec');
+
+  try {
+    const resp = await fetch(API + '/api/db/design-template', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({scenario})
+    });
+    const data = await resp.json();
+    hideLoading('dbsec');
+    renderResult('dbsec-result', data, scenario + ' 数据库设计');
+  } catch(e) { hideLoading('dbsec'); showError('dbsec', e.message); }
+}
+
+// DB competition task
+async function dbCompetition(taskNum) {
+  hideError('dbsec');
+  document.getElementById('dbsec-result').innerHTML = '';
+  showLoading('dbsec');
+
+  try {
+    const resp = await fetch(API + '/api/db/competition', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({task: taskNum, config: {}})
+    });
+    const data = await resp.json();
+    hideLoading('dbsec');
+    if (data.error && !data.success) {
+      showError('dbsec', data.error);
+    } else {
+      renderResult('dbsec-result', data, '竞赛数据库场景 ' + taskNum);
+    }
+  } catch(e) { hideLoading('dbsec'); showError('dbsec', e.message); }
+}
+
+// ============ 服务器配置 JS ============
+
+let currentServerPanel = null;
+
+function showServerPanel(type) {
+  const panel = document.getElementById('server-panel');
+  panel.classList.remove('hidden');
+  // Hide all sub-panels
+  document.querySelectorAll('[id^="server-panel-"]').forEach(el => el.style.display = 'none');
+  // Show selected
+  const target = document.getElementById('server-panel-' + type);
+  if (target) target.style.display = 'block';
+  currentServerPanel = type;
+}
+
+async function serverApi(action) {
+  hideError('server');
+  document.getElementById('server-result').innerHTML = '';
+  showLoading('server');
+
+  let config = {};
+  let apiAction = action;
+
+  if (action === 'user') {
+    apiAction = document.getElementById('srv-user-action').value;
+    config = {
+      username: document.getElementById('srv-username').value.trim(),
+      groupname: document.getElementById('srv-groupname').value.trim(),
+      password: document.getElementById('srv-password').value.trim(),
+      shell: document.getElementById('srv-shell').value.trim() || '/bin/bash'
+    };
+  } else if (action === 'ssh') {
+    config = {
+      port: document.getElementById('srv-ssh-port').value || '22',
+      permit_root: document.getElementById('srv-ssh-root').value,
+      password_auth: document.getElementById('srv-ssh-password').value,
+      allow_users: document.getElementById('srv-ssh-users').value.trim(),
+      alive_interval: document.getElementById('srv-ssh-interval').value || '300',
+      alive_countmax: document.getElementById('srv-ssh-countmax').value || '3'
+    };
+  } else if (action === 'service') {
+    apiAction = document.getElementById('srv-svc-action').value;
+    config = {
+      service: document.getElementById('srv-svc-name').value.trim()
+    };
+  } else if (action === 'permissions') {
+    apiAction = document.getElementById('srv-perm-action').value;
+    config = {
+      path: document.getElementById('srv-perm-path').value.trim(),
+      mode: document.getElementById('srv-perm-mode').value.trim(),
+      user: document.getElementById('srv-perm-user').value.trim(),
+      acl_perms: document.getElementById('srv-perm-acl').value.trim()
+    };
+  } else if (action === 'network') {
+    apiAction = document.getElementById('srv-net-action').value;
+    config = {
+      ip: document.getElementById('srv-net-ip').value.trim(),
+      mask: document.getElementById('srv-net-mask').value.trim(),
+      gateway: document.getElementById('srv-net-gw').value.trim(),
+      dns: document.getElementById('srv-net-dns').value.trim(),
+      hostname: document.getElementById('srv-net-hostname').value.trim(),
+      connection: document.getElementById('srv-net-connection').value.trim() || 'eth0'
+    };
+  } else if (action === 'log') {
+    apiAction = document.getElementById('srv-log-action').value;
+    config = {
+      remote_ip: document.getElementById('srv-log-remote').value.trim()
+    };
+  } else if (action === 'hardening') {
+    apiAction = document.getElementById('srv-hard-action').value;
+    config = {
+      banner_text: document.getElementById('srv-hard-banner').value.trim(),
+      allow_ip: document.getElementById('srv-hard-allow-ip').value.trim()
+    };
+  }
+
+  try {
+    const resp = await fetch(API + '/api/server/' + action, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: apiAction, config})
+    });
+    const data = await resp.json();
+    hideLoading('server');
+    if (data.error && !data.success) {
+      showError('server', data.error);
+    } else {
+      renderResult('server-result', data, '服务器配置命令');
+    }
+  } catch(e) { hideLoading('server'); showError('server', e.message); }
+}
+
+async function serverCompetition(taskNum) {
+  hideError('server');
+  document.getElementById('server-result').innerHTML = '';
+  showLoading('server');
+
+  try {
+    const resp = await fetch(API + '/api/server/competition', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({task: taskNum, config: {}})
+    });
+    const data = await resp.json();
+    hideLoading('server');
+    if (data.error && !data.success) {
+      showError('server', data.error);
+    } else {
+      renderResult('server-result', data, '竞赛场景 ' + taskNum);
+    }
+  } catch(e) { hideLoading('server'); showError('server', e.message); }
+}
+
+// 数据安全Tab专用函数
+async function dataEncode(api, mode) {
+  const text = document.getElementById('data-code-input').value.trim();
+  if (!text) { alert('请输入文本'); return; }
+  await callJsonApi(`/api/data/${api}`, { text, mode });
+}
+
+async function dataHash() {
+  const text = document.getElementById('data-hash-input').value.trim();
+  if (!text) { alert('请输入文本'); return; }
+  const algo = document.getElementById('data-hash-algo').value;
+  await callJsonApi('/api/data/hash', { text, algo });
+}
+
+async function dataFileHash() {
+  const fileInput = document.getElementById('data-file-hash');
+  if (!fileInput.files.length) { alert('请先选择文件'); return; }
+  const algo = document.getElementById('data-file-hash-algo').value;
+  hideError('data');
+  document.getElementById('data-result').innerHTML = '';
+  showLoading('data');
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  formData.append('algo', algo);
+  try {
+    const resp = await fetch(API + '/api/data/file-hash', { method: 'POST', body: formData });
+    const data = await resp.json();
+    hideLoading('data');
+    if (data.error && !data.success) {
+      showError('data', data.error);
+    } else {
+      renderResult('data-result', data, fileInput.files[0].name);
+    }
+  } catch (e) {
+    hideLoading('data');
+    showError('data', '请求失败: ' + e.message);
+  }
+}
+
+async function dataScan() {
+  const text = document.getElementById('data-scan-input').value.trim();
+  if (!text) { alert('请输入文本'); return; }
+  await callJsonApi('/api/data/scan', { text });
+}
+
+async function dataClassify() {
+  const text = document.getElementById('data-scan-input').value.trim();
+  if (!text) { alert('请输入文本'); return; }
+  await callJsonApi('/api/data/classify', { text });
+}
+
+async function dataPasswordStrength() {
+  const password = document.getElementById('data-pwd-input').value.trim();
+  if (!password) { alert('请输入密码'); return; }
+  await callJsonApi('/api/data/password-strength', { password });
+}
+
+// Init
+loadFirewallScenarios();
+</script>
+</body>
+</html>
